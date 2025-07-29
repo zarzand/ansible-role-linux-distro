@@ -1,184 +1,187 @@
 ---
-- name: Update and upgrade packages
-  ansible.builtin.dnf:
-    state: latest
-    update_cache: yes
-    name: "*"
-
-- name: Install list of packages
-  ansible.builtin.dnf:
-    state: latest
-    update_cache: yes
-    pkg:
-      - epel-release
-      - yum-utils
-      - nfs-utils
-      - lsof
-      - telnet
-      - tmux
-
-- name: Install list from a_packages
-  ansible.builtin.dnf:
-    state: latest
-    update_cache: yes
-    pkg: "{{ a_packages }}"
-
-- name: Set timezone to America/Los_Angeles
-  become: true
-  community.general.timezone:
-    name: America/Los_Angeles
-
-- name: Set hostname
-  ansible.builtin.hostname:
-    name: "{{ a_hostname }}"
-
-- name: Change etc hosts file
-  ansible.builtin.template:
-    src: etc_hosts.j2
-    dest: "{{ etc_hosts_file }}"
-    owner: root
-    group: root
-    mode: 0644
-    backup: no
-
-- name: Add {{ a_sudo_user }} user
-  ansible.builtin.user:
-    name: "{{ a_sudo_user }}"
-    comment: "{{ a_sudo_user_comment }}"
-    uid: 1010
-    group: root
-    state: present
-    shell: /bin/bash
-    create_home: yes
-
-- name: Make sudo without password for {{ a_sudo_user }} user
-  ansible.builtin.lineinfile:
-    path: "/etc/sudoers.d/99-sudo-users"
-    create: true
-    line: "{{ item }} ALL=(ALL) NOPASSWD:ALL"
-    validate: /usr/sbin/visudo -cf %s
-  with_items:
-    - "{{ a_sudo_default_user }}"
-    - "{{ a_sudo_user }}"
-
-- name: Set authorized key for {{ a_sudo_user }} user
-  ansible.posix.authorized_key:
-    user: "{{ a_sudo_user }}"
-    state: present
-    key: "{{ lookup('file', lookup('env','HOME') + lookup('env','Users') + '/.ssh/id_rsa_' + a_sudo_user + '.pub') }}"  #"{{ lookup('file', '/Users/{{ a_temp_user }}/.ssh/id_rsa_{{ a_sudo_user }}.pub') }}"
-
-- name: Disable pi wifi
-  ansible.builtin.command: sudo nmcli radio wifi off
-  failed_when: false
-
-- name: Disable wifi in /boot/config.txt
-  ansible.builtin.lineinfile:
-    path: /boot/config.txt
-    line: "dtoverlay=disable-wifi"
-    create: true
-
-- name: Disable bluetooth in /boot/config.txt
-  ansible.builtin.lineinfile:
-    path: /boot/config.txt
-    line: "dtoverlay=disable-bt"
-    create: true
-
-- name: Modify Network Manager connection and interface
-  ansible.builtin.shell:
-    cmd: |
-      nm_find="{{ nmcli_connection_current_name }}"
-      mac_address=$(ip link show "{{ ansible_default_ipv4.interface }}" | awk '/ether/ {print $2}')
-      
-      get_connection="$(sudo nmcli -f name,type,device connection show --active | grep -P '^(?=.*'$nm_find')(?=.*{{ nmcli_connection_type }})' | sed 's/[[:space:]]*$//')"
-      
-      if [[ $get_connection == *"$nm_find"* ]]; then
-        get_connection_name=$(sudo nmcli -f name connection show --active | grep "^$nm_find" | sed 's/[[:space:]]*$//')
-      
-        if [[ -n "$(find /etc/NetworkManager/system-connections/ -name $nm_find* -print -quit 2>/dev/null)" ]]; then
-            sudo mv /etc/NetworkManager/system-connections/"$nm_find"* /etc/NetworkManager/system-connections/"{{ nmcli_connection_name_0 }}.nmconnection"
-            sudo nmcli connection reload
-        fi
-      
-        sudo nmcli connection modify "$get_connection_name" connection.id "{{ nmcli_connection_name_0 }}"    
-        sudo nmcli connection reload
-        
-        # Change network interface name
-        sudo ip link set "{{ ansible_default_ipv4.interface }}" name "{{ nmcli_device_interface_name_0 }}"
-        sudo ip link set "{{ nmcli_device_interface_name_0 }}" up        
-        sudo nmcli connection reload
-      
-        # 70-persistent-net.rules
-        # Add rule to keep network interface static
-        
-        echo "SUBSYSTEM==\"net\", ACTION==\"add\", DRIVERS==\"?*\", ATTR{address}==\"$mac_address\", NAME=\"{{ nmcli_device_interface_name_0 }}\"" >> /etc/udev/rules.d/99-com.rules
-      fi
-
-- name: Change server network config
-  community.general.nmcli:
-    conn_name: "{{ nmcli_connection_name_0 }}"
-    ifname: "{{ nmcli_device_interface_name_0 }}"
-    type: "{{ nmcli_connection_type }}"
-    ip4: "{{ ipv4_addresses }}/{{ ipv4_addresses_subnet_mask }}"
-    method4: "manual"
-    gw4: "{{ ipv4_gateway }}"
-    method6: "disabled"
-    dns4:
-      - "{{ a_dns1 }}"
-      - "{{ a_dns2 }}"
-    state: present
-  notify:
-    - Reboot server
-
-- name: Delete 90-cloud-init-users from /etc/sudoers.d
-  ansible.builtin.shell:
-   cmd: "rm -rf -f /etc/sudoers.d/90-cloud-init-users"
-
-- name: Create maintenance folder
-  ansible.builtin.file:
-    state: directory
-    path: "/opt/maintenance"
-    owner: root
-    group: root
-    mode: '700'
-
-- name: Copy maintenance file
-  ansible.builtin.template:
-    src: "maintenance.sh.j2"
-    dest: "/opt/maintenance/maintenance.sh"
-    owner: root
-    group: root
-    mode: 0700
-
-- name: AlmaLinux cron job is scheduled to run at 2 AM on any Sunday between the 1st and 7th of the month
-  ansible.builtin.cron:
-    name: "AlmaLinux maintenance script on sunday of first week of the month"
-    user: "root"
-    minute: "0"
-    hour: "2"
-    day: "1-7"
-    month: "*"
-    weekday: "0"
-    job: "/opt/maintenance/maintenance.sh"
-    state: present
-
-- name: Check if reboot is required
-  ansible.builtin.shell:
-   cmd: "needs-restarting | echo $?" #"needs-restarting -r -s"
-  register: r_reboot_status
-  #changed_when: reboot_required.rc == 1
-  failed_when: false
-
-- name: Display reboot status
+- name: Print all available facts
   ansible.builtin.debug:
-    msg: "{{ r_reboot_status }}"
-
-- name: Reboot server is required
-  ansible.builtin.reboot:
-    msg: "Reboot initiated by Ansible due to kernel updates"
-    connect_timeout: 5
-    reboot_timeout: 300
-    pre_reboot_delay: 0
-    post_reboot_delay: 30
-    test_command: uptime
-  #when: reboot_required.rc == 1
-  when: r_reboot_status.rc == 1
+    var: ansible_facts
+#- name: Update and upgrade packages
+#  ansible.builtin.dnf:
+#    state: latest
+#    update_cache: yes
+#    name: "*"
+#
+#- name: Install list of packages
+#  ansible.builtin.dnf:
+#    state: latest
+#    update_cache: yes
+#    pkg:
+#      - epel-release
+#      - yum-utils
+#      - nfs-utils
+#      - lsof
+#      - telnet
+#      - tmux
+#
+#- name: Install list from a_packages
+#  ansible.builtin.dnf:
+#    state: latest
+#    update_cache: yes
+#    pkg: "{{ a_packages }}"
+#
+#- name: Set timezone to America/Los_Angeles
+#  become: true
+#  community.general.timezone:
+#    name: America/Los_Angeles
+#
+#- name: Set hostname
+#  ansible.builtin.hostname:
+#    name: "{{ a_hostname }}"
+#
+#- name: Change etc hosts file
+#  ansible.builtin.template:
+#    src: etc_hosts.j2
+#    dest: "{{ etc_hosts_file }}"
+#    owner: root
+#    group: root
+#    mode: 0644
+#    backup: no
+#
+#- name: Add {{ a_sudo_user }} user
+#  ansible.builtin.user:
+#    name: "{{ a_sudo_user }}"
+#    comment: "{{ a_sudo_user_comment }}"
+#    uid: 1010
+#    group: root
+#    state: present
+#    shell: /bin/bash
+#    create_home: yes
+#
+#- name: Make sudo without password for {{ a_sudo_user }} user
+#  ansible.builtin.lineinfile:
+#    path: "/etc/sudoers.d/99-sudo-users"
+#    create: true
+#    line: "{{ item }} ALL=(ALL) NOPASSWD:ALL"
+#    validate: /usr/sbin/visudo -cf %s
+#  with_items:
+#    - "{{ a_sudo_default_user }}"
+#    - "{{ a_sudo_user }}"
+#
+#- name: Set authorized key for {{ a_sudo_user }} user
+#  ansible.posix.authorized_key:
+#    user: "{{ a_sudo_user }}"
+#    state: present
+#    key: "{{ lookup('file', lookup('env','HOME') + lookup('env','Users') + '/.ssh/id_rsa_' + a_sudo_user + '.pub') }}"  #"{{ lookup('file', '/Users/{{ a_temp_user }}/.ssh/id_rsa_{{ a_sudo_user }}.pub') }}"
+#
+#- name: Disable pi wifi
+#  ansible.builtin.command: sudo nmcli radio wifi off
+#  failed_when: false
+#
+#- name: Disable wifi in /boot/config.txt
+#  ansible.builtin.lineinfile:
+#    path: /boot/config.txt
+#    line: "dtoverlay=disable-wifi"
+#    create: true
+#
+#- name: Disable bluetooth in /boot/config.txt
+#  ansible.builtin.lineinfile:
+#    path: /boot/config.txt
+#    line: "dtoverlay=disable-bt"
+#    create: true
+#
+#- name: Modify Network Manager connection and interface
+#  ansible.builtin.shell:
+#    cmd: |
+#      nm_find="{{ nmcli_connection_current_name }}"
+#      mac_address=$(ip link show "{{ ansible_default_ipv4.interface }}" | awk '/ether/ {print $2}')
+#
+#      get_connection="$(sudo nmcli -f name,type,device connection show --active | grep -P '^(?=.*'$nm_find')(?=.*{{ nmcli_connection_type }})' | sed 's/[[:space:]]*$//')"
+#
+#      if [[ $get_connection == *"$nm_find"* ]]; then
+#        get_connection_name=$(sudo nmcli -f name connection show --active | grep "^$nm_find" | sed 's/[[:space:]]*$//')
+#
+#        if [[ -n "$(find /etc/NetworkManager/system-connections/ -name $nm_find* -print -quit 2>/dev/null)" ]]; then
+#            sudo mv /etc/NetworkManager/system-connections/"$nm_find"* /etc/NetworkManager/system-connections/"{{ nmcli_connection_name_0 }}.nmconnection"
+#            sudo nmcli connection reload
+#        fi
+#
+#        sudo nmcli connection modify "$get_connection_name" connection.id "{{ nmcli_connection_name_0 }}"
+#        sudo nmcli connection reload
+#
+#        # Change network interface name
+#        sudo ip link set "{{ ansible_default_ipv4.interface }}" name "{{ nmcli_device_interface_name_0 }}"
+#        sudo ip link set "{{ nmcli_device_interface_name_0 }}" up
+#        sudo nmcli connection reload
+#
+#        # 70-persistent-net.rules
+#        # Add rule to keep network interface static
+#
+#        echo "SUBSYSTEM==\"net\", ACTION==\"add\", DRIVERS==\"?*\", ATTR{address}==\"$mac_address\", NAME=\"{{ nmcli_device_interface_name_0 }}\"" >> /etc/udev/rules.d/99-com.rules
+#      fi
+#
+#- name: Change server network config
+#  community.general.nmcli:
+#    conn_name: "{{ nmcli_connection_name_0 }}"
+#    ifname: "{{ nmcli_device_interface_name_0 }}"
+#    type: "{{ nmcli_connection_type }}"
+#    ip4: "{{ ipv4_addresses }}/{{ ipv4_addresses_subnet_mask }}"
+#    method4: "manual"
+#    gw4: "{{ ipv4_gateway }}"
+#    method6: "disabled"
+#    dns4:
+#      - "{{ a_dns1 }}"
+#      - "{{ a_dns2 }}"
+#    state: present
+#  notify:
+#    - Reboot server
+#
+#- name: Delete 90-cloud-init-users from /etc/sudoers.d
+#  ansible.builtin.shell:
+#   cmd: "rm -rf -f /etc/sudoers.d/90-cloud-init-users"
+#
+#- name: Create maintenance folder
+#  ansible.builtin.file:
+#    state: directory
+#    path: "/opt/maintenance"
+#    owner: root
+#    group: root
+#    mode: '700'
+#
+#- name: Copy maintenance file
+#  ansible.builtin.template:
+#    src: "maintenance.sh.j2"
+#    dest: "/opt/maintenance/maintenance.sh"
+#    owner: root
+#    group: root
+#    mode: 0700
+#
+#- name: AlmaLinux cron job is scheduled to run at 2 AM on any Sunday between the 1st and 7th of the month
+#  ansible.builtin.cron:
+#    name: "AlmaLinux maintenance script on sunday of first week of the month"
+#    user: "root"
+#    minute: "0"
+#    hour: "2"
+#    day: "1-7"
+#    month: "*"
+#    weekday: "0"
+#    job: "/opt/maintenance/maintenance.sh"
+#    state: present
+#
+#- name: Check if reboot is required
+#  ansible.builtin.shell:
+#   cmd: "needs-restarting | echo $?" #"needs-restarting -r -s"
+#  register: r_reboot_status
+#  #changed_when: reboot_required.rc == 1
+#  failed_when: false
+#
+#- name: Display reboot status
+#  ansible.builtin.debug:
+#    msg: "{{ r_reboot_status }}"
+#
+#- name: Reboot server is required
+#  ansible.builtin.reboot:
+#    msg: "Reboot initiated by Ansible due to kernel updates"
+#    connect_timeout: 5
+#    reboot_timeout: 300
+#    pre_reboot_delay: 0
+#    post_reboot_delay: 30
+#    test_command: uptime
+#  #when: reboot_required.rc == 1
+#  when: r_reboot_status.rc == 1

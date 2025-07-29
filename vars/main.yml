@@ -1,4 +1,6 @@
 ---
+
+# Install common packages for a specific Linux distribution
 _vault_prerequisites:
   default:
     - file
@@ -11,15 +13,21 @@ _vault_prerequisites:
     - lsof
     - telnet
     - tmux
+  RedHat:
+    - epel-release
+  Ubuntu:
+    - nfs-common
+    - lsof
+    - telnet
+    - tmux
   Debian:
     - apparmor-utils
     - file
     - libcap2-bin
     - openssl
     - procps
-vault_prerequisites: "{{ _vault_prerequisites[ansible_os_family] | default(_vault_prerequisites['default']) }}"
+vault_prerequisites: "{{ _vault_prerequisites[ansible_distribution] | _vault_prerequisites[ansible_os_family] | default(_vault_prerequisites['default']) }}"
 
-ansible_distribution == "AlmaLinux"
 #### etc ####
 etc_hosts_file: /etc/hosts
 

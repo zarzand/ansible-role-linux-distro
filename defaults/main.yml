@@ -1,32 +1,32 @@
 ---
-#### User ####
-a_sudo_user: ""
-a_sudo_user_comment: ""
-
-#### Set Hostname ####
-a_domain: ""
-a_hostname: ""
-
-#### DNS ####
-a_dns1: ""
-a_dns2: ""
-
-#### etc ####
-# Custom hosts entries to be added
-hosts_entries: []
-
-#### IPv4 ####
-ipv4_addresses: ""
-ipv4_addresses_subnet_mask: ""
-ipv4_gateway: ""
-
-#### Network Manager (nmcli) ####
-nmcli_connection_current_name: ""
-nmcli_connection_name_0: ""
-nmcli_connection_name_1: ""
-nmcli_device_interface_name_0: ""
-nmcli_device_interface_name_1: ""
-nmcli_connection_type: ""
-
-#### Install Packages ####
-a_packages: []
+##### User ####
+#a_sudo_user: ""
+#a_sudo_user_comment: ""
+#
+##### Set Hostname ####
+#a_domain: ""
+#a_hostname: ""
+#
+##### DNS ####
+#a_dns1: ""
+#a_dns2: ""
+#
+##### etc ####
+## Custom hosts entries to be added
+#hosts_entries: []
+#
+##### IPv4 ####
+#ipv4_addresses: ""
+#ipv4_addresses_subnet_mask: ""
+#ipv4_gateway: ""
+#
+##### Network Manager (nmcli) ####
+#nmcli_connection_current_name: ""
+#nmcli_connection_name_0: ""
+#nmcli_connection_name_1: ""
+#nmcli_device_interface_name_0: ""
+#nmcli_device_interface_name_1: ""
+#nmcli_connection_type: ""
+#
+##### Install Packages ####
+#a_packages: []
