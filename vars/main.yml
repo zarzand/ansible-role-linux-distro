@@ -13,13 +13,6 @@ _vault_prerequisites:
     - lsof
     - telnet
     - tmux
-  RedHat:
-    - epel-release
-    - yum-utils
-    - nfs-utils
-    - lsof
-    - telnet
-    - tmux
   Ubuntu:
     - nfs-common
     - lsof
