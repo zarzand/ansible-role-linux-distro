@@ -32,7 +32,7 @@
   delegate_to: localhost
 
 - name: Update and Ugrade
-  action: "{{ ansible_pkg_mgr }} state=latest name=*"
+  action: "{{ ansible_pkg_mgr }} state=latest name='*' update_cache=yes cache_valid_time=3600"
 
 - name: Install prerequisites
   action: "{{ ansible_pkg_mgr }} state=latest name={{ item }}"
