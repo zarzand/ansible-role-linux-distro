@@ -13,19 +13,17 @@ _vault_prerequisites:
     - lsof
     - telnet
     - tmux
-    - samba
-    - mdadm
   Ubuntu:
     - nfs-common
     - lsof
     - telnet
     - tmux
-  Debian:
-    - apparmor-utils
-    - file
-    - libcap2-bin
-    - openssl
-    - procps
+#  Debian:
+#    - apparmor-utils
+#    - file
+#    - libcap2-bin
+#    - openssl
+#    - procps
 
 vault_prerequisites: "{{ _vault_prerequisites[ansible_distribution] | default(_vault_prerequisites['default']) }}"
 
