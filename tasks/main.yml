@@ -2,7 +2,7 @@
 
 - name: Print all available facts
   ansible.builtin.debug:
-    msg: {{ ansible_facts }}
+    msg: "{{ ansible_facts }}"
 
 - name: Import assert.yml
   ansible.builtin.import_tasks:
