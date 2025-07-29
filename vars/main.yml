@@ -15,6 +15,11 @@ _vault_prerequisites:
     - tmux
   RedHat:
     - epel-release
+    - yum-utils
+    - nfs-utils
+    - lsof
+    - telnet
+    - tmux
   Ubuntu:
     - nfs-common
     - lsof
@@ -26,7 +31,7 @@ _vault_prerequisites:
     - libcap2-bin
     - openssl
     - procps
-vault_prerequisites: "{{ _vault_prerequisites[ansible_distribution] | _vault_prerequisites[ansible_os_family] | default(_vault_prerequisites['default']) }}"
+vault_prerequisites: "{{ _vault_prerequisites[ansible_distribution | ansible_os_family] | default(_vault_prerequisites['default']) }}"
 
 #### etc ####
 etc_hosts_file: /etc/hosts
