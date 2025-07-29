@@ -1,0 +1,9 @@
+#!/bin/bash
+
+{{ ansible_managed | comment }}
+
+yum clean all -y
+dnf update -y
+dnf upgrade -y
+#dnf upgrade --refresh
+dnf system-upgrade reboot

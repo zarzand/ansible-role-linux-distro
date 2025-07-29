@@ -1,0 +1,88 @@
+############################################################################################################
+# Pi Ansible
+############################################################################################################
+# Ignore (.gitignore) temporary files, build results, and files.
+############################################################################################################
+
+# User Specific Files
+*.suo
+*.user
+*.sln.docstates
+
+# Project Build
+.vs/
+[Dd]ebug/
+[Rr]elease/
+x64/
+[Bb]in/
+[Oo]bj/
+
+# Database Build
+*.dbmdl
+*.jfm
+
+# Publish Web
+*.[Pp]ublish.xml
+*.pubxml
+
+# Miscellaneous Files
+sql/
+*.Cache
+ClientBin/
+[Ss]tyle[Cc]op.*
+~$*
+*~
+*.pfx
+*.publishsettings
+
+# Mac
+.DS_Store
+.idea
+
+# Windows
+Thumbs.db
+ehthumbs.db
+$RECYCLE.BIN/
+Desktop.ini
+
+# Azure
+csx
+*.build.csdef
+
+# Test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*_i.c
+*_p.c
+*.ilk
+*.meta
+*.obj
+*.pch
+*.pdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.log
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.log
+*.scc
+
+# Visual Studio
+_UpgradeReport_Files/
+Backup*/
+UpgradeLog*.xml
+UpgradeLog*.htm
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.psess
+*.vsp
+*.vspx

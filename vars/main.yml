@@ -1,0 +1,27 @@
+---
+_vault_prerequisites:
+  default:
+    - file
+    - libcap
+    - openssl
+  AlmaLinux:
+    - epel-release
+    - yum-utils
+    - nfs-utils
+    - lsof
+    - telnet
+    - tmux
+  Debian:
+    - apparmor-utils
+    - file
+    - libcap2-bin
+    - openssl
+    - procps
+vault_prerequisites: "{{ _vault_prerequisites[ansible_os_family] | default(_vault_prerequisites['default']) }}"
+
+ansible_distribution == "AlmaLinux"
+#### etc ####
+etc_hosts_file: /etc/hosts
+
+#### User ####
+a_sudo_default_user: pinube

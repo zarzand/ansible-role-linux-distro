@@ -1,0 +1,8 @@
+{{ ansible_managed | comment }}
+
+{% for host in hosts_entries %}
+{{ host.ip }}  {{ host.name }} {{ host.aliases | default('') | join(' ') }}
+{% endfor %}
+127.0.0.1  localhost.localdomain  localhost
+::1		localhost6.localdomain6 localhost6
+

@@ -1,0 +1,15 @@
+---
+#### etc/hosts ####
+- name: Restart etc hosts
+  ansible.builtin.service:
+    name: hostsd
+    state: restarted
+
+#### sshd ####
+- name: Restart sshd
+  ansible.builtin.service:
+    name: sshd
+    state: restarted
+
+- name: Reboot Server
+  ansible.builtin.reboot:
