@@ -31,6 +31,10 @@
   run_once: true
   delegate_to: localhost
 
+- name: Print all available facts
+  ansible.builtin.debug:
+    msg: "{{ ansible_pkg_mgr }}"
+
 - name: Update and Ugrade
   action: "{{ ansible_pkg_mgr }} state=latest name='*' update_cache=yes"
   when:
