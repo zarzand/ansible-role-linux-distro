@@ -1,6 +1,6 @@
 ---
 
-# Install common packages for a specific Linux distribution
+# Install common packages for a specific Linux distribution ansible_os_family
 _vault_prerequisites:
   default:
     - file
@@ -31,7 +31,8 @@ _vault_prerequisites:
     - libcap2-bin
     - openssl
     - procps
-vault_prerequisites: "{{ _vault_prerequisites[ansible_distribution | ansible_os_family] | default(_vault_prerequisites['default']) }}"
+
+vault_prerequisites: "{{ _vault_prerequisites[ansible_distribution] | default(_vault_prerequisites['default']) }}"
 
 #### etc ####
 etc_hosts_file: /etc/hosts
