@@ -1,4 +1,15 @@
 ---
+
+- name: Import assert.yml
+  ansible.builtin.import_tasks:
+    file: assert.yml
+  run_once: true
+  delegate_to: localhost
+
+- name: Install prerequisites
+  ansible.builtin.package:
+    name: "{{ vault_prerequisites }}"
+
 - name: Print all available facts
   ansible.builtin.debug:
     var: ansible_facts
