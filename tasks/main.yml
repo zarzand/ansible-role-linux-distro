@@ -41,6 +41,13 @@
   ansible.builtin.package:
     name: "{{ vault_prerequisites }}"
 
+- name: Install prerequisites
+  action: "{{ ansible_pkg_mgr }} state=latest name=*"
+
+- name: Install prerequisites
+  action: "{{ ansible_pkg_mgr }} state=installed name={{ item }}"
+  with_items: "{{ vault_prerequisites }}"
+
 #- name: Update and upgrade packages
 #  ansible.builtin.dnf:
 #    state: latest
