@@ -10,6 +10,29 @@
   ansible.builtin.debug:
     msg: "{{ ansible_facts.processor_count }}"
 
+
+- name: Display total memory
+  debug:
+    msg: "Total Memory: {{ ansible_memtotal_mb }} MB"
+
+- name: Display free memory
+  debug:
+    msg: "Free Memory: {{ ansible_memfree_mb }} MB"
+
+- name: Display number of CPU cores
+  debug:
+    msg: "Number of CPU Cores: {{ ansible_processor_vcpus | default(ansible_processor_count) }}"
+
+- name: Display CPU architecture
+  debug:
+    msg: "CPU Architecture: {{ ansible_architecture }}"
+
+- name: Display CPU model
+  debug:
+  # ansible_processor can be a list of processor models
+    msg: "CPU Model: {{ ansible_processor[1] if ansible_processor | length > 1 else ansible_processor[0] }}"
+
+
 - name: Import assert.yml
   ansible.builtin.import_tasks:
     file: assert.yml
