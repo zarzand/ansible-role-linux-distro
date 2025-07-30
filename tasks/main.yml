@@ -4,55 +4,36 @@
 #  ansible.builtin.debug:
 #    msg: "{{ ansible_facts }}"
 
-- name: Display total memory
-  debug:
-    msg: "Total Memory: {{ ansible_memtotal_mb }} MB"
-
-- name: Display free memory
-  debug:
-    msg: "Free Memory: {{ ansible_memfree_mb }} MB"
-
-- name: Display number of CPU cores
-  debug:
-    msg: "Number of CPU Cores: {{ ansible_processor_vcpus | default(ansible_processor_count) }}"
-
-- name: Display CPU architecture
-  debug:
-    msg: "CPU Architecture: {{ ansible_architecture }}"
-
-- name: Display CPU model
-  debug:
-  # ansible_processor can be a list of processor models
-    msg: "CPU Model: {{ ansible_processor[1] if ansible_processor | length > 1 else ansible_processor[0] }}"
-
 - name: Import assert.yml
   ansible.builtin.import_tasks:
     file: assert.yml
   run_once: true
   delegate_to: localhost
 
-- name: Print all available facts
-  ansible.builtin.debug:
-    msg: "{{ ansible_pkg_mgr }}"
+- name: Include hardware tasks
+  ansible.builtin.include_tasks:
+    file: hardware.yml
 
-- name: Update and Ugrade
-  action: "{{ ansible_pkg_mgr }} state=latest name='*' update_cache=yes"
-  when:
-    - ansible_pkg_mgr == "yum" or ansible_pkg_mgr == "dnf"
+- name: Server hardware information
+  block:
+    - name: System Update and upgrade
+      action: "{{ ansible_pkg_mgr }} state=latest name='*' update_cache=yes"
+      when:
+        - ansible_pkg_mgr == "yum" or ansible_pkg_mgr == "dnf"
 
-- name: Update and Ugrade
-  action: "{{ ansible_pkg_mgr }} update_cache=yes cache_valid_time=3600 upgrade=yes autoremove=yes"
-  when:
-    - ansible_pkg_mgr == "apt"
+    - name: System Update and upgrade
+      action: "{{ ansible_pkg_mgr }} update_cache=yes cache_valid_time=3600 upgrade=yes autoremove=yes"
+      when:
+        - ansible_pkg_mgr == "apt"
 
-- name: Update and Ugrade
-  action: "{{ ansible_pkg_mgr }} state=latest name='*' update_cache=yes cache_valid_time=3600 upgrade=yes autoremove=yes"
-  when:
-    - ansible_pkg_mgr == "pacman"
+    - name: System Update and upgrade
+      action: "{{ ansible_pkg_mgr }} state=latest name='*' update_cache=yes cache_valid_time=3600 upgrade=yes autoremove=yes"
+      when:
+        - ansible_pkg_mgr == "pacman"
 
-- name: Install prerequisites
+- name: Install Linux distro prerequisites
   action: "{{ ansible_pkg_mgr }} state=latest name={{ item }}"
-  with_items: "{{ vault_prerequisites }}"
+  with_items: "{{ linux_distro_prerequisites }}"
 
 #- name: Update and upgrade packages
 #  ansible.builtin.dnf:

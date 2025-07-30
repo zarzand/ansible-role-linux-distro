@@ -1,7 +1,7 @@
 ---
 
 # Install common packages for a specific Linux distribution ansible_os_family
-_vault_prerequisites:
+_linux_distro_prerequisites:
   default:
     - file
     - libcap
@@ -18,17 +18,4 @@ _vault_prerequisites:
     - lsof
     - telnet
     - tmux
-#  Debian:
-#    - apparmor-utils
-#    - file
-#    - libcap2-bin
-#    - openssl
-#    - procps
-
-vault_prerequisites: "{{ _vault_prerequisites[ansible_distribution] | default(_vault_prerequisites['default']) }}"
-
-#### etc ####
-etc_hosts_file: /etc/hosts
-
-#### User ####
-a_sudo_default_user: pinube
+linux_distro_prerequisites: "{{ _linux_distro_prerequisites[ansible_distribution] | default(_linux_distro_prerequisites['default']) }}"
