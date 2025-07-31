@@ -37,7 +37,7 @@
 #  with_items: "{{ linux_distro_upgrade_update }}"
 
 - name: System Update and upgrade
-  action: "{{ ansible_pkg_mgr }} {{ item.command }}"
+  action: "{{ item.command }}"
   loop: "{{ linux_distro_upgrade_update }}"
 
 - name: System Update and upgrade
