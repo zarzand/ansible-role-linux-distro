@@ -36,8 +36,8 @@
     msg: "{{ ansible_pkg_mgr }}"
 
 - name: System Update and upgrade
-  action: "{{ ansible_pkg_mgr }} {{ item.value }}"
-  loop: "{{ linux_distro_upgrade_update }}"
+  action: "dnf {{ item }}"
+  with_items: "{{ linux_distro_upgrade_update }}"
 
 - name: Install Linux distro prerequisites
   action: "{{ ansible_pkg_mgr }} state=latest name={{ item }}"
