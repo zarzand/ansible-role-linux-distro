@@ -28,8 +28,8 @@
 #nmcli_device_interface_name_1: ""
 #nmcli_connection_type: ""
 #
-##### Install Packages ####
-#a_packages: []
+#### Install Packages ####
+linux_distro_packages: []
 
 
 #### etc ####

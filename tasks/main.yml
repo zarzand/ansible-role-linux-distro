@@ -14,34 +14,30 @@
   ansible.builtin.include_tasks:
     file: hardware.yml
 
-#- name: Linux distro update and upgrade
-#  block:
-#    - name: System Update and upgrade
-#      action: "{{ ansible_pkg_mgr }} state=latest name='*' update_cache=yes"
-#      when:
-#        - ansible_pkg_mgr == "yum" or ansible_pkg_mgr == "dnf"
-#
-#    - name: System Update and upgrade
-#      action: "{{ ansible_pkg_mgr }} update_cache=yes cache_valid_time=3600 upgrade=yes autoremove=yes"
-#      when:
-#        - ansible_pkg_mgr == "apt"
-#
-#    - name: System Update and upgrade
-#      action: "{{ ansible_pkg_mgr }} state=latest name='*' update_cache=yes cache_valid_time=3600 upgrade=yes autoremove=yes"
-#      when:
-#        - ansible_pkg_mgr == "pacman"
+- name: Linux distro update and upgrade
+  block:
+    - name: System Update and upgrade
+      action: "{{ ansible_pkg_mgr }} state=latest name='*' update_cache=yes"
+      when:
+        - ansible_pkg_mgr == "yum" or ansible_pkg_mgr == "dnf"
 
-- name: Print all available facts
-  ansible.builtin.debug:
-    msg: "{{ ansible_pkg_mgr }}"
+    - name: System Update and upgrade
+      action: "{{ ansible_pkg_mgr }} update_cache=yes cache_valid_time=3600 upgrade=yes autoremove=yes"
+      when:
+        - ansible_pkg_mgr == "apt"
 
-- name: System Update and upgrade
-  action: "{{ ansible_pkg_mgr }} state=latest name={{ item }} update_cache=yes"
-  with_items: "{{ linux_distro_upgrade_update }}"
+    - name: System Update and upgrade
+      action: "{{ ansible_pkg_mgr }} state=latest name='*' update_cache=yes cache_valid_time=3600 upgrade=yes autoremove=yes"
+      when:
+        - ansible_pkg_mgr == "pacman"
 
 - name: Install Linux distro prerequisites
-  action: "{{ ansible_pkg_mgr }} state=latest name={{ item }}"
+  action: "{{ ansible_pkg_mgr }} state=latest update_cache=yes name={{ item }} "
   with_items: "{{ linux_distro_prerequisites }}"
+
+- name: Install Linux distro list of custom packages
+  action: "{{ ansible_pkg_mgr }} state=latest update_cache=yes name={{ item }} "
+  with_items: "{{ linux_distro_packages }}"
 
 #- name: Update and upgrade packages
 #  ansible.builtin.dnf:
