@@ -31,15 +31,13 @@
 #      when:
 #        - ansible_pkg_mgr == "pacman"
 
-
-- name: System Update and upgrade Output
-  ansible.builtin.debug:
-    msg: "{{ item }}"
-  with_items: "{{ linux_distro_upgrade_update }}"
-
+#- name: System Update and upgrade Output
+#  ansible.builtin.debug:
+#    msg: "{{ item }}"
+#  with_items: "{{ linux_distro_upgrade_update }}"
 
 - name: System Update and upgrade
-  action: "{{ item }}"
+  action: "{{ ansible_pkg_mgr }} {{ item }}"
   with_items: "{{ linux_distro_upgrade_update }}"
 
 - name: Install Linux distro prerequisites
