@@ -34,7 +34,7 @@
 
 - name: System Update and upgrade
   ansible.builtin.debug:
-  msg: "{{ ansible_pkg_mgr }} {{ item }}"
+    msg: "{{ ansible_pkg_mgr }} {{ item }}"
   with_items: "{{ linux_distro_upgrade_update }}"
 
 
