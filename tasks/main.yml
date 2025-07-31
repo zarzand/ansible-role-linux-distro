@@ -35,12 +35,12 @@
 - name: System Update and upgrade Output
   ansible.builtin.debug:
     msg: "{{ item }}"
-  loop: "{{ linux_distro_upgrade_update }}"
+  with_items: "{{ linux_distro_upgrade_update }}"
 
 
 - name: System Update and upgrade
   action: "{{ ansible_pkg_mgr }}{{ item }}"
-  loop: "{{ linux_distro_upgrade_update }}"
+  with_items: "{{ linux_distro_upgrade_update }}"
 
 - name: Install Linux distro prerequisites
   action: "{{ ansible_pkg_mgr }} state=latest name={{ item }}"
