@@ -35,6 +35,11 @@
   ansible.builtin.debug:
     msg: "{{ ansible_pkg_mgr }}"
 
+- name: Print all available facts
+  ansible.builtin.debug:
+    msg: "dnf {{ item }}"
+  with_items: "{{ linux_distro_upgrade_update }}"
+
 - name: System Update and upgrade
   action: "dnf {{ item }}"
   with_items: "{{ linux_distro_upgrade_update }}"
