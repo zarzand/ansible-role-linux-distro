@@ -37,7 +37,7 @@
 #  with_items: "{{ linux_distro_upgrade_update }}"
 
 - name: System Update and upgrade
-  action: " {{ item }}"
+  action: "{{ ansible_pkg_mgr }} {{ item }}"
   with_items: "{{ linux_distro_upgrade_update }}"
 
 - name: Install Linux distro prerequisites
