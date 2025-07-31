@@ -1,27 +1,34 @@
 ---
 
-# Install common packages for a specific Linux distribution ansible_os_family
+# Install common packages for a specific Linux distribution ansible_distribution/ansible_os_family
 _linux_distro_prerequisites:
   default:
     - file
     - libcap
     - openssl
-  AlmaLinux:
+  dnf:
     - epel-release
     - yum-utils
     - nfs-utils
     - lsof
     - telnet
     - tmux
-  Ubuntu:
+  yum:
+    - epel-release
+    - yum-utils
+    - nfs-utils
+    - lsof
+    - telnet
+    - tmux
+  apt:
     - nfs-common
     - lsof
     - telnet
     - tmux
-  Arch Linux:
+  pacman:
     - nfs-utils
     - lsof
     - telnet
     - tmux
     - cronie
-linux_distro_prerequisites: "{{ _linux_distro_prerequisites[ansible_distribution] | default(_linux_distro_prerequisites['default']) }}"
+linux_distro_prerequisites: "{{ _linux_distro_prerequisites[ansible_pkg_mgr] | default(_linux_distro_prerequisites['default']) }}"
