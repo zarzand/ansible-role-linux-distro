@@ -31,14 +31,17 @@
 #      when:
 #        - ansible_pkg_mgr == "pacman"
 
-#- name: System Update and upgrade Output
-#  ansible.builtin.debug:
-#    msg: "{{ item }}"
-#  with_items: "{{ linux_distro_upgrade_update }}"
+- name: System Update and upgrade Output
+  ansible.builtin.debug:
+    msg: "{{ ansible_pkg_mgr }} {{ item.command }}"
+  with_items: "{{ linux_distro_upgrade_update }}"
 
 - name: System Update and upgrade
-  action: "{{ item.command }}"
-  loop: "{{ linux_distro_upgrade_update }}"
+  action: "{{ ansible_pkg_mgr }} {{ item.command }}"
+  with_items: "{{ linux_distro_upgrade_update }}"
+
+
+
 
 - name: System Update and upgrade
   action: "{{ ansible_pkg_mgr }} {{ item.command }}"

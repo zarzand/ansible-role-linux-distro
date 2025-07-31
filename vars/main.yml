@@ -35,4 +35,5 @@ _linux_distro_upgrade_update:
     - { command: "update_cache=yes cache_valid_time=3600 upgrade=yes autoremove=yes" }
   pacman:
     - { command: "state=latest name='*' update_cache=yes cache_valid_time=3600 upgrade=yes autoremove=yes" }
-linux_distro_upgrade_update: "{{ _linux_distro_upgrade_update[ansible_pkg_mgr] }}"
+
+linux_distro_upgrade_update: "{{ _linux_distro_upgrade_update[dnf] }}"
