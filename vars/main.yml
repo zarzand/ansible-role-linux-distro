@@ -26,14 +26,13 @@ _linux_distro_prerequisites:
     - cronie
 linux_distro_prerequisites: "{{ _linux_distro_prerequisites[ansible_distribution] | default(_linux_distro_prerequisites['default']) }}"
 
-_linux_distro_upgrade_update:
-  dnf:
-    - { command: state=latest name='*' update_cache=yes }
-  yum:
-    - { command: "state=latest name='*' update_cache=yes" }
-  apt:
-    - { command: "update_cache=yes cache_valid_time=3600 upgrade=yes autoremove=yes" }
-  pacman:
-    - { command: "state=latest name='*' update_cache=yes cache_valid_time=3600 upgrade=yes autoremove=yes" }
-
-linux_distro_upgrade_update: "{{ _linux_distro_upgrade_update['dnf'] }}"
+#_linux_distro_upgrade_update:
+#  dnf:
+#    - "state=latest name='*' update_cache=yes"
+#  yum:
+#    - "state=latest name='*' update_cache=yes"
+#  apt:
+#    - "update_cache=yes cache_valid_time=3600 upgrade=yes autoremove=yes"
+#  pacman:
+#    - "state=latest name='*' update_cache=yes cache_valid_time=3600 upgrade=yes autoremove=yes"
+#linux_distro_upgrade_update: "{{ _linux_distro_upgrade_update[ansible_pkg_mgr] }}"

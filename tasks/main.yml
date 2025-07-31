@@ -14,38 +14,30 @@
   ansible.builtin.include_tasks:
     file: hardware.yml
 
-- name: Server hardware information
+- name: Linux distro update and upgrade
+  when:
+    - ansible_pkg_mgr == "yum" or ansible_pkg_mgr == "dnf"
   block:
     - name: System Update and upgrade
       action: "{{ ansible_pkg_mgr }} state=latest name='*' update_cache=yes"
-      when:
-        - ansible_pkg_mgr == "yum" or ansible_pkg_mgr == "dnf"
 
+- name: Linux distro update and upgrade
+  when:
+    - ansible_pkg_mgr == "apt"
+  block:
     - name: System Update and upgrade
       action: "{{ ansible_pkg_mgr }} update_cache=yes cache_valid_time=3600 upgrade=yes autoremove=yes"
-      when:
-        - ansible_pkg_mgr == "apt"
 
+- name: Linux distro update and upgrade
+  when:
+    - ansible_pkg_mgr == "pacman"
+  block:
     - name: System Update and upgrade
       action: "{{ ansible_pkg_mgr }} state=latest name='*' update_cache=yes cache_valid_time=3600 upgrade=yes autoremove=yes"
-      when:
-        - ansible_pkg_mgr == "pacman"
 
-- name: System Update and upgrade Output
-  ansible.builtin.debug:
-    msg: "{{ ansible_pkg_mgr }} {{ item.command }}"
-  with_items: "{{ linux_distro_upgrade_update }}"
-
-- name: System Update and upgrade
-  action: "{{ ansible_pkg_mgr }} {{ item.command }}"
-  with_items: "{{ linux_distro_upgrade_update }}"
-
-
-
-
-- name: System Update and upgrade
-  action: "{{ ansible_pkg_mgr }} {{ item.command }}"
-  with_items: "{{ linux_distro_upgrade_update }}"
+#- name: System Update and upgrade
+#  action: "{{ ansible_pkg_mgr }} {{ item.command }}"
+#  with_items: "{{ linux_distro_upgrade_update }}"
 
 - name: Install Linux distro prerequisites
   action: "{{ ansible_pkg_mgr }} state=latest name={{ item }}"
