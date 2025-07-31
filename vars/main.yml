@@ -28,7 +28,7 @@ linux_distro_prerequisites: "{{ _linux_distro_prerequisites[ansible_distribution
 
 _linux_distro_upgrade_update:
   dnf:
-    - { command: "state=latest name='*' update_cache=yes" }
+    - { command: state=latest name='*' update_cache=yes }
   yum:
     - { command: "state=latest name='*' update_cache=yes" }
   apt:
