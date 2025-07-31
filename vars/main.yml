@@ -30,7 +30,7 @@ _linux_distro_upgrade_update:
   default:
     - "state=latest"
   dnf:
-    - "state=latest name='*' update_cache=yes"
+    - "name='*' update_cache=yes"
   yum:
     - "state=latest name='*' update_cache=yes"
   apt:

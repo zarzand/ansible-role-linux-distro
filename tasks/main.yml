@@ -35,13 +35,8 @@
   ansible.builtin.debug:
     msg: "{{ ansible_pkg_mgr }}"
 
-- name: Print all available facts
-  ansible.builtin.debug:
-    msg: "dnf {{ item }}"
-  with_items: "{{ linux_distro_upgrade_update }}"
-
 - name: System Update and upgrade
-  action: "dnf {{ item }}"
+  action: "{{ ansible_pkg_mgr }} state=latest {{ item }}"
   with_items: "{{ linux_distro_upgrade_update }}"
 
 - name: Install Linux distro prerequisites
