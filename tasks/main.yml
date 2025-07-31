@@ -39,7 +39,7 @@
 
 
 - name: System Update and upgrade
-  action: "{{ item }}"
+  action: "{{ ansible_pkg_mgr }}{{ item }}"
   loop: "{{ linux_distro_upgrade_update }}"
 
 - name: Install Linux distro prerequisites
