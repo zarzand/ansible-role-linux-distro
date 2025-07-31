@@ -1,5 +1,4 @@
 ---
-
 - name: firewalld | Create Firewalld zone if does not exist
   ansible.posix.firewalld:
     zone: "{{ firewalld_zone }}"

@@ -1,22 +1,20 @@
 ---
-- name: hardware | Server hardware information
-  block:
-    - name: hardware | Display total memory
-      ansible.builtin.debug:
-        msg: "Total Memory: {{ ansible_memtotal_mb }} MB"
+- name: hardware | Server hardware information display total memory
+  ansible.builtin.debug:
+    msg: "Total Memory: {{ ansible_memtotal_mb }} MB"
 
-    - name: hardware | Display free memory
-      ansible.builtin.debug:
-        msg: "Free Memory: {{ ansible_memfree_mb }} MB"
+- name: hardware | Server hardware information display free memory
+  ansible.builtin.debug:
+    msg: "Free Memory: {{ ansible_memfree_mb }} MB"
 
-    - name: hardware | Display number of CPU cores
-      ansible.builtin.debug:
-        msg: "Number of CPU Cores: {{ ansible_processor_vcpus | default(ansible_processor_count) }}"
+- name: hardware | Server hardware information display number of CPU cores
+  ansible.builtin.debug:
+    msg: "Number of CPU Cores: {{ ansible_processor_vcpus | default(ansible_processor_count) }}"
 
-    - name: hardware | Display CPU architecture
-      ansible.builtin.debug:
-        msg: "CPU Architecture: {{ ansible_architecture }}"
+- name: hardware | Server hardware information | Display CPU architecture
+  ansible.builtin.debug:
+    msg: "CPU Architecture: {{ ansible_architecture }}"
 
-    - name: hardware | Display CPU model
-      ansible.builtin.debug:
-        msg: "CPU Model: {{ ansible_processor[1] if ansible_processor | length > 1 else ansible_processor[0] }}"
+- name: hardware | Server hardware information display CPU model
+  ansible.builtin.debug:
+    msg: "CPU Model: {{ ansible_processor[1] if ansible_processor | length > 1 else ansible_processor[0] }}"
