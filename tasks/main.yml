@@ -32,7 +32,7 @@
 #        - ansible_pkg_mgr == "pacman"
 
 
-- name: System Update and upgrade
+- name: System Update and upgrade Output
   ansible.builtin.debug:
     msg: "{{ item }}"
   loop: "{{ linux_distro_upgrade_update }}"
@@ -40,7 +40,7 @@
 
 - name: System Update and upgrade
   action: "{{ item }}"
-  with_items: "{{ linux_distro_upgrade_update }}"
+  loop: "{{ linux_distro_upgrade_update }}"
 
 - name: Install Linux distro prerequisites
   action: "{{ ansible_pkg_mgr }} state=latest name={{ item }}"
