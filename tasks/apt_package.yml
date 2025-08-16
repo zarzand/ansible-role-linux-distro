@@ -1,0 +1,11 @@
+---
+- name: Linux distro system update and upgrade
+  action: "{{ ansible_pkg_mgr }} update_cache=yes cache_valid_time=3600 upgrade=yes autoremove=yes"
+
+- name: Install Linux distro prerequisites
+  action: "{{ ansible_pkg_mgr }} state=latest update_cache=yes name={{ item }} "
+  with_items: "{{ linux_distro_prerequisites }}"
+
+- name: Install Linux distro list of custom packages
+  action: "{{ ansible_pkg_mgr }} state=latest update_cache=yes name={{ item }} "
+  with_items: "{{ linux_distro_packages }}"

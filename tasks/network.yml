@@ -1,0 +1,33 @@
+---
+
+#- name: Check NetworkManager service status
+#  ansible.builtin.command: systemctl is-active NetworkManager
+#  register: nm_status
+#  ignore_errors: true
+#
+#- name: Set fact if NetworkManager is running
+#  ansible.builtin.set_fact:
+#    network_manager_active: "{{ nm_status.rc == 0 }}"
+#
+
+
+- name: network | Gather service facts for NetworkManager
+  ansible.builtin.service:
+    name: NetworkManager.service
+    state: started # This ensures the module will check the state, not try to start it.
+  register: networkmanager_status
+
+- name: Display NetworkManager service status
+  ansible.builtin.debug:
+    msg: {{ networkmanager_status }}
+#    msg: "NetworkManager.service is active: {{ networkmanager_status.status.ActiveState == 'active' }}"
+
+- name: network | Gather service facts for Netplan
+  ansible.builtin.service:
+    name: systemd-networkd.service
+    state: started # This ensures the module will check the state, not try to start it.
+  register: netplan_status
+
+- name: Display Netplan service status
+  ansible.builtin.debug:
+    msg: {{ netplan_status }}

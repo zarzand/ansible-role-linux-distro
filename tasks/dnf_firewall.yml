@@ -1,18 +1,18 @@
 ---
-- name: firewalld | Create Firewalld zone if does not exist
+- name: dnf_firewall | Create Firewalld zone if does not exist
   ansible.posix.firewalld:
     zone: "{{ firewalld_zone }}"
     state: present
     permanent: true
 
-- name: firewalld | Set Firewalld default zone
+- name: dnf_firewall | Set Firewalld default zone
   ansible.builtin.shell:
     cmd: |
       firewall-cmd --set-default-zone="{{ firewalld_zone }}"
   when:
     - firewalld_set_default_zone
 
-- name: firewalld | Set Firewalld interface to zone
+- name: dnf_firewall | Set Firewalld interface to zone
   ansible.posix.firewalld:
     zone: "{{ firewalld_zone }}"
     interface: "{{ firewalld_interface  }}"
@@ -22,7 +22,7 @@
   when:
     - firewalld_set_default_interface
 
-- name: firewalld | Add Firewalld service to zone
+- name: dnf_firewall | Add Firewalld service to zone
   ansible.posix.firewalld:
     zone: "{{ firewalld_zone }}"
     service: "{{ item }}"
@@ -32,7 +32,7 @@
   with_items: "{{ firewalld_services }}"
   notify: Reload Firewalld
 
-- name: firewalld | Add Firewalld ports to zone
+- name: dnf_firewall | Add Firewalld ports to zone
   ansible.posix.firewalld:
     zone: "{{ firewalld_zone }}"
     port: "{{ item }}"

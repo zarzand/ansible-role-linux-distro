@@ -31,7 +31,6 @@
 #### Install Packages ####
 linux_distro_packages: []
 
-
 #### etc ####
 hosts_file_path: /etc/hosts
 

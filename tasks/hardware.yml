@@ -1,4 +1,5 @@
 ---
+
 - name: hardware | Server hardware information display total memory
   ansible.builtin.debug:
     msg: "Total Memory: {{ ansible_memtotal_mb }} MB"
@@ -11,7 +12,7 @@
   ansible.builtin.debug:
     msg: "Number of CPU Cores: {{ ansible_processor_vcpus | default(ansible_processor_count) }}"
 
-- name: hardware | Server hardware information | Display CPU architecture
+- name: hardware | Server hardware information display CPU architecture
   ansible.builtin.debug:
     msg: "CPU Architecture: {{ ansible_architecture }}"
 
