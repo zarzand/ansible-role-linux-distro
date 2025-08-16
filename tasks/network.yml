@@ -13,7 +13,7 @@
 - name: Gather service facts
   ansible.builtin.service_facts:
   register: service_info
-  when: "{{ services.keys()|list|select('search', '^NetworkManager') }}"
+  when: ansible_facts.services.keys()|list|select('search', '^NetworkManager')
 
 - name: Display Netplan service status
   ansible.builtin.debug:
