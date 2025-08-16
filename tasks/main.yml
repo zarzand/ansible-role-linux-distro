@@ -15,11 +15,11 @@
     file: hardware.yml
 
 - name: Include distribution-specific package tasks
-  ansible.builtin.include_tasks: "tasks/{{ ansible_distribution | lower }}_package.yml"
+  ansible.builtin.include_tasks: "tasks/{{ ansible_pkg_mgr | lower }}_package.yml"
   when: ansible_distribution is defined
 
 - name: Include distribution-specific firewall tasks
-  ansible.builtin.include_tasks: "tasks/{{ ansible_distribution | lower }}_firewall.yml"
+  ansible.builtin.include_tasks: "tasks/{{ ansible_pkg_mgr | lower }}_firewall.yml"
   when: ansible_distribution is defined
 
 - name: Include distribution-specific firewall tasks
