@@ -3,10 +3,10 @@
 - name: yum_package | Linux distro system update and upgrade
   action: "{{ ansible_pkg_mgr }} state=latest name='*' update_cache=yes"
 
-- name: yum_package | Install Linux distro prerequisites
+- name: yum_package | Install linux distro prerequisites
   action: "{{ ansible_pkg_mgr }} state=latest update_cache=yes name={{ item }} "
   with_items: "{{ linux_distro_prerequisites }}"
 
-- name: yum_package | Install Linux distro list of custom packages
+- name: yum_package | Install linux distro list of custom packages
   action: "{{ ansible_pkg_mgr }} state=latest update_cache=yes name={{ item }} "
   with_items: "{{ linux_distro_packages }}"
