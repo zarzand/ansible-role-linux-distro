@@ -13,24 +13,18 @@
 - name: Gather service facts
   ansible.builtin.service_facts:
 
-#- name: network | Gather service facts for NetworkManager
-#  ansible.builtin.service:
-#    name: NetworkManager.service
-#    state: started # This ensures the module will check the state, not try to start it.
-#  register: networkmanager_status
-#  when: "ansible_facts.services.keys()|list|select('search', '^NetworkManager.service')|length >0"
+- name: network | Gather service facts for NetworkManager
+  ansible.builtin.service:
+    name: NetworkManager.service
+    state: started # This ensures the module will check the state, not try to start it.
+  register: networkmanager_status
+  when: "ansible_facts.services.keys()|list|select('search', '^NetworkManager')|length >0"
 
-
-- name: Display NetworkManager service status
-  ansible.builtin.debug:
-    msg: "{{ ansible_facts.services }}"
-
-
-- name: Display NetworkManager service status
-  ansible.builtin.debug:
-    msg: "{{ networkmanager_status.status.ActiveState }}"
-  when: "ansible_facts.services.keys()|list|select('search', '^NetworkManager.service')|length >0"
-#    msg: "NetworkManager.service is active: {{ networkmanager_status.status.ActiveState == 'active' }}"
+#- name: Display NetworkManager service status
+#  ansible.builtin.debug:
+#    msg: "{{ networkmanager_status.status.ActiveState }}"
+#  when: ansible_facts.services['NetworkManager.service'] is defined
+##    msg: "NetworkManager.service is active: {{ networkmanager_status.status.ActiveState == 'active' }}"
 
 - name: network | Gather service facts for Netplan
   ansible.builtin.service:
