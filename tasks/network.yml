@@ -20,7 +20,7 @@
 
 - name: Display NetworkManager service status
   ansible.builtin.debug:
-    msg: "{{ networkmanager_status.status.ActiveState }}"
+    msg: "{{ networkmanager_status }}"
   ignore_errors: true
 #    msg: "NetworkManager.service is active: {{ networkmanager_status.status.ActiveState == 'active' }}"
 
@@ -33,5 +33,5 @@
 
 - name: Display Netplan service status
   ansible.builtin.debug:
-    msg: "{{ netplan_status.active }}"
+    msg: "{{ netplan_status }}"
   ignore_errors: true
