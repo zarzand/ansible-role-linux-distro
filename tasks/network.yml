@@ -10,8 +10,8 @@
 #    network_manager_active: "{{ nm_status.rc == 0 }}"
 #
 
-#- name: Gather service facts
-#  ansible.builtin.service_facts:
+- name: Gather service facts
+  ansible.builtin.service_facts:
 
 - name: network | Gather service facts for NetworkManager
   ansible.builtin.service:
@@ -30,7 +30,7 @@
   ansible.builtin.service:
     name: systemd-networkd.service
     state: started # This ensures the module will check the state, not try to start it.
-  register: netplan_status
+    register: netplan_status
   when: ansible_facts.services['systemd-networkd.service'] is defined
 
 - name: Display Netplan service status
