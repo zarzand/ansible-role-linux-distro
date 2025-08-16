@@ -20,24 +20,19 @@
   register: networkmanager_status
   when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') != 'not-found'
 
-
-
 - name: Display NetworkManager service status
   ansible.builtin.debug:
     msg: "{{ networkmanager_status.status.ActiveState }}"
   when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') != 'not-found'
-
-  #ansible_facts.services['NetworkManager.service'] is defined
-#    msg: "NetworkManager.service is active: {{ networkmanager_status.status.ActiveState == 'active' }}"
 
 - name: network | Gather service facts for Netplan
   ansible.builtin.service:
     name: systemd-networkd.service
     state: started # This ensures the module will check the state, not try to start it.
   register: netplan_status
-  when: ansible_facts.services['systemd-networkd.service'] is defined
+  when: ansible_facts['services']['systemd-networkd.service']['status'] | default('not-found') != 'not-found'
 
 - name: Display Netplan service status
   ansible.builtin.debug:
     msg: "{{ netplan_status.status.ActiveState }}"
-  when: ansible_facts.services['systemd-networkd.service'] is defined
+  when: ansible_facts['services']['systemd-networkd.service']['status'] | default('not-found') != 'not-found'
