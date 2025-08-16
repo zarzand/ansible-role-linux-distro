@@ -12,10 +12,11 @@
 
 
 - name: network | Gather service facts for NetworkManager
-  ansible.builtin.systemd:
+  ansible.builtin.systemd_service:
     name: NetworkManager.service
     state: started # This ensures the module will check the state, not try to start it.
   register: networkmanager_status
+  ignore_errors: true
 
 - name: Display NetworkManager service status
   ansible.builtin.debug:
@@ -27,6 +28,7 @@
     name: systemd-networkd.service
     state: started # This ensures the module will check the state, not try to start it.
   register: netplan_status
+  ignore_errors: true
 
 - name: Display Netplan service status
   ansible.builtin.debug:
