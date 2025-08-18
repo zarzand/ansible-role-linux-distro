@@ -15,7 +15,7 @@
     ansible.builtin.debug:
       msg: "{{ network_manager_status.status }}" # network_manager_status.status.ActiveState == 'active' # when: network_manager_status.status.ActiveState != 'active'
 
-- name: network | NetworkManager
+- name: network | networkd
   when: ansible_facts['services']['systemd-networkd.service']['status'] | default('not-found') != 'not-found'
   block:
   - name: network | Check networkd service status
@@ -28,20 +28,17 @@
       msg: "{{ networkd_status.status }}"
 
 
-- name: network | NetworkManager
+- name: network | netplan
   when: ansible_facts['services']['systemd-networkd.service']['status'] | default('not-found') != 'not-found'
   block:
-- name: network | Check networkd service status
-  ansible.builtin.service:
-    name: systemd-networkd.service
-    state: started
-  register: netplan_status
-  when: ansible_facts['services']['systemd-networkd.service']['status'] | default('not-found') != 'not-found'
-
-- name: Display Netplan service status
-  ansible.builtin.debug:
-    msg: "{{ netplan_status.status.ActiveState }}"
-  when: ansible_facts['services']['systemd-networkd.service']['status'] | default('not-found') != 'not-found'
+  - name: network | Check networkd service status
+    ansible.builtin.service:
+      name: systemd-networkd.service
+      state: started
+    register: netplan_status
+  - name: Display Netplan service status
+    ansible.builtin.debug:
+      msg: "{{ netplan_status.status }}"
 
 
 
