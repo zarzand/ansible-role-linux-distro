@@ -45,7 +45,7 @@
 - name: network | Get ethernet interface name
   ansible.builtin.shell:
     cmd: |
-      lshw -class network | awk '/description: Ethernet interface/{flag=1; next} /logical name:/ && flag{print $3; flag=0}'
+      sudo lshw -class network | awk '/description: Ethernet interface/{flag=1; next} /logical name:/ && flag{print $3; flag=0}'
     register: ethernet_interface_name
 
 - name: network | Display ethernet interface name
