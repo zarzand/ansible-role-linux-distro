@@ -50,8 +50,8 @@
 
 - name: network | Display ethernet interface name
   ansible.builtin.debug:
-    msg: "{{ ethernet_interface_name }}"
-#  with_items: "{{ ethernet_interface_name }}"
+    msg: "{{ item }}"
+  with_items: "{{ ethernet_interface_name.stdout_lines }}"
 
 #
 #- name: Check NetworkManager service status
