@@ -45,12 +45,12 @@
 - name: network | Get ethernet interface name
   ansible.builtin.shell:
     cmd: |
-      sudo lshw -class network | awk '/description: Ethernet interface/{flag=1; next} /logical name:/ && flag{print $3; flag=0}'
+      lshw -class network | awk '/description: Ethernet interface/{flag=1; next} /logical name:/ && flag{print $3; flag=0}'
   register: ethernet_interface_name
 
 - name: network | Display ethernet interface name
   ansible.builtin.debug:
-    msg: "{{ ethernet_interface_name }}"
+    msg: "{{ ethernet_interface_name.stdout }}"
 
 #
 #- name: Check NetworkManager service status
