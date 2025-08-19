@@ -23,22 +23,42 @@
       name: systemd-networkd.service
       state: started
     register: networkd_status
+
+  - name: network | Check for netplan configuration files
+    ansible.builtin.find:
+      paths: /etc/netplan
+      patterns: "*.yaml"
+    register: netplan_files
+
+  - name: network | Read netplan configuration if files exist
+    ansible.builtin.slurp:
+      src: "{{ item.path }}"
+    loop: "{{ netplan_files.files }}"
+    register: netplan_content
+    when: netplan_files.files | length > 0
+
+  - name: network | Determine netplan renderer
+    ansible.builtin.set_fact:
+      netplan_renderer: "unknown"
+    when: netplan_files.files | length == 0
+
+  - name: network | Determine netplan renderer from content
+    ansible.builtin.set_fact:
+      netplan_renderer: "{{ item.content | b64decode | from_yaml | json_query('network.renderer') }}"
+    loop: "{{ netplan_content.results }}"
+    when: netplan_files.files | length > 0 and item.content is defined
+
   - name: network | Display networkd service status
     ansible.builtin.debug:
       msg: "{{ networkd_status.status.ActiveState }}"
 
+  - name: network | Display networkd service status
+    ansible.builtin.debug:
+      msg: "{{ netplan_content }}"
 
-#- name: network | netplan
-#  when: ansible_facts['services']['systemd-networkd.service']['status'] | default('not-found') != 'not-found'
-#  block:
-#  - name: network | Check networkd service status
-#    ansible.builtin.service:
-#      name: systemd-networkd.service
-#      state: started
-#    register: netplan_status
-#  - name: Display Netplan service status
-#    ansible.builtin.debug:
-#      msg: "{{ netplan_status.status }}"
+  - name: network | Display networkd service status
+    ansible.builtin.debug:
+      msg: "{{ netplan_files }}"
 
 
 
