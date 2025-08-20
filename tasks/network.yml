@@ -45,15 +45,15 @@
       netplan_renderer: "unknown"
     when: netplan_files.files | length == 0
 
-  - name: network | Determine netplan renderer from content
-    ansible.builtin.set_fact:
-      netplan_renderer: "{{ item.content | b64decode | from_yaml | json_query('network.version') }}"
-    loop: "{{ netplan_content.results }}"
-    when: netplan_files.files | length > 0 and item.content is defined
-
-  - name: network | Display networkd service status
-    ansible.builtin.debug:
-      msg: "{{ networkd_status.status.ActiveState }}"
+#  - name: network | Determine netplan renderer from content
+#    ansible.builtin.set_fact:
+#      netplan_renderer: "{{ item.content | b64decode | from_yaml | json_query('network.renderer') }}"
+#    loop: "{{ netplan_content.results }}"
+#    when: netplan_files.files | length > 0 and item.content is defined
+#
+#  - name: network | Display networkd service status
+#    ansible.builtin.debug:
+#      msg: "{{ networkd_status.status.ActiveState }}"
 
   - name: network | Display networkd service status
     ansible.builtin.debug:
