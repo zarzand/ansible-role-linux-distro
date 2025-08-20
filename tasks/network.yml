@@ -3,6 +3,7 @@
 - name: network | Gather service facts
   ansible.builtin.service_facts:
 
+# -------------------------------------------- #
 - name: network | NetworkManager
   when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') != 'not-found'
   block:
@@ -11,10 +12,12 @@
       name: NetworkManager.service
       state: started #status
     register: network_manager_status
+
   - name: network | Display NetworkManager service status
     ansible.builtin.debug:
       msg: "{{ network_manager_status.status.ActiveState }}" # network_manager_status.status.ActiveState == 'active' # when: network_manager_status.status.ActiveState != 'active'
 
+# -------------------------------------------- #
 - name: network | networkd
   when: ansible_facts['services']['systemd-networkd.service']['status'] | default('not-found') != 'not-found'
   block:
@@ -44,7 +47,7 @@
 
   - name: network | Determine netplan renderer from content
     ansible.builtin.set_fact:
-      netplan_renderer: "{{ item.content | b64decode | from_yaml | json_query('network.renderer') }}"
+      netplan_renderer: "{{ item.content | b64decode | from_yaml | json_query('network.version') }}"
     loop: "{{ netplan_content.results }}"
     when: netplan_files.files | length > 0 and item.content is defined
 
@@ -61,7 +64,7 @@
       msg: "{{ netplan_files }}"
 
 
-
+# -------------------------------------------- #
 - name: network | Get ethernet interface name
   ansible.builtin.shell:
     cmd: |
