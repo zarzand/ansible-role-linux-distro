@@ -74,9 +74,9 @@
          NetworkManager
       {% elif (netplan_renderer == 'networkd' or netplan_renderer == 'none') %}
 #        Netplan (systemd-networkd)
-         systemd-networkd-via-Netplan
+         systemd_networkd_via_Netplan
       {% elif networkd_active and netplan_renderer == 'unknown' %}
-        systemd-networkd
+        systemd_networkd
       {% else %}
         Unknown or other method
       {% endif %}
