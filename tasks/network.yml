@@ -17,8 +17,8 @@
 
 - name: network | Set fact if NetworkManager is active
   ansible.builtin.set_fact:
-    network_manager_active: "{{ network_manager_status.status.ActiveState == 'active' }}"
-  when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') != 'not-found'
+    network_manager_active: false
+  when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') == 'not-found'
 
 - name: network | Display ethernet interface name
   ansible.builtin.debug:
@@ -68,10 +68,11 @@
 - name: network | Determine netplan renderer from content
   ansible.builtin.set_fact:
     netplan_renderer: "{{ netplan_content_results.network.renderer | default('none') }}"
+  when: netplan_files.files | length > 0
 
-- name: network | Display ethernet interface name
-  ansible.builtin.debug:
-    msg: "{{ netplan_renderer }}"
+#- name: network | Display ethernet interface name
+#  ansible.builtin.debug:
+#    msg: "{{ netplan_renderer }}"
 
 
 
