@@ -47,7 +47,7 @@
 
   - name: network | Determine netplan renderer from content
     ansible.builtin.set_fact:
-      netplan_renderer: "{{ item.content | b64decode | from_yaml }}"
+      netplan_renderer: "{{ item.content | b64decode | from_yaml | json_query('network.renderer') }}"
     loop: "{{ netplan_content.results }}"
     when: netplan_files.files | length > 0 and item.content is defined
 
@@ -58,7 +58,7 @@
   - name: network | Determine primary network manager
     ansible.builtin.set_fact:
       primary_network_manager: >-
-        {% if network_manager_status.status.ActiveState == 'active' and netplan_renderer == 'NetworkManager' %}
+        {% if {{ network_manager_status.status.ActiveState == 'active' }} and netplan_renderer == 'NetworkManager' %}
           NetworkManager (via Netplan)
         {% elif network_manager_status.status.ActiveState == 'active' %}
           NetworkManager (direct)
