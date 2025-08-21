@@ -43,11 +43,13 @@
     loop: "{{ netplan_files.files }}"
     register: netplan_content
     when: netplan_files.files | length > 0
+    no_log: true
 
   - name: network | Determine netplan renderer
     ansible.builtin.set_fact:
       netplan_renderer: "unknown"
     when: netplan_files.files | length == 0
+    no_log: true
 
 
 
@@ -62,6 +64,7 @@
     ansible.builtin.set_fact:
       temp_netplan: "{{ item.content | b64decode | from_yaml }}"
     loop: "{{ netplan_content.results }}"
+    no_log: true
 
   - name: network | Display ethernet interface name
     ansible.builtin.debug:
@@ -69,7 +72,7 @@
 
   - name: network | Display ethernet interface name
     ansible.builtin.debug:
-      msg: "{{ lookup('temp_netplan', 'dhcp4') | default('none') }}"
+      msg: "{{ lookup(temp_netplan, 'dhcp4') | default('none') }}"
 
 
 
