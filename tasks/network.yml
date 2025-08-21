@@ -48,7 +48,7 @@
 
   - name: network | Display ethernet interface name
     ansible.builtin.debug:
-      msg: "{{ item.content }}"
+      msg: "{{ item.content | b64decode | from_yaml }}"
     loop: "{{ netplan_content.results }}"
 
 
