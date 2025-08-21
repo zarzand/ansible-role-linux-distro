@@ -13,13 +13,17 @@
     name: NetworkManager.service
     state: started
   register: network_manager_status
-  ignore_errors: true
-  #when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') != 'not-found'
+  when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') != 'not-found'
 
 - name: network | Set fact if NetworkManager is active
   ansible.builtin.set_fact:
     network_manager_active: "{{ network_manager_status.status.ActiveState == 'active' }}"
-  when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') != 'not-found'
+  #when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') != 'not-found'
+
+- name: network | Display ethernet interface name
+  ansible.builtin.debug:
+    msg: "{{ network_manager_active }}"
+
 
 # -------------------------------------------- #
 - name: network | Check networkd service state
@@ -27,8 +31,7 @@
     name: systemd-networkd.service
     state: started
   register: networkd_status
-  ignore_errors: true
-  #when: ansible_facts['services']['systemd-networkd.service']['status'] | default('not-found') != 'not-found'
+  when: ansible_facts['services']['systemd-networkd.service']['status'] | default('not-found') != 'not-found'
 
 - name: network | Set fact if networkd is active
   ansible.builtin.set_fact:
