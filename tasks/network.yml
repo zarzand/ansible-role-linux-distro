@@ -52,10 +52,10 @@
 
 
 
-  - name: network | Display ethernet interface name
-    ansible.builtin.debug:
-      msg: "{{ item.content | b64decode | from_yaml }}"
-    loop: "{{ netplan_content.results }}"
+#  - name: network | Display ethernet interface name
+#    ansible.builtin.debug:
+#      msg: "{{ item.content | b64decode | from_yaml }}"
+#    loop: "{{ netplan_content.results }}"
 
 
   - name: network | Display ethernet interface name
@@ -65,7 +65,11 @@
 
   - name: network | Display ethernet interface name
     ansible.builtin.debug:
-      msg: "{{ temp_netplan.network.version | default('none') }}"
+      msg: "{{ temp_netplan.network.renderer | default('none') }}"
+
+  - name: network | Display ethernet interface name
+    ansible.builtin.debug:
+      msg: "{{ lookups(temp_netplan.network, 'dhcp4') | default('none') }}"
 
 
 
