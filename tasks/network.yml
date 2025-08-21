@@ -1,5 +1,9 @@
 ---
 
+#- name: Print all available facts
+#  ansible.builtin.debug:
+#    msg: "{{ ansible_facts }}"
+
 - name: network | Gather service facts
   ansible.builtin.service_facts:
 
@@ -46,10 +50,24 @@
     when: netplan_files.files | length == 0
 
 
+
+
   - name: network | Display ethernet interface name
     ansible.builtin.debug:
       msg: "{{ item.content | b64decode | from_yaml }}"
     loop: "{{ netplan_content.results }}"
+
+
+  - name: network | Display ethernet interface name
+    ansible.builtin.set_fact:
+      temp_netplan: "{{ item.content | b64decode | from_yaml }}"
+    loop: "{{ netplan_content.results }}"
+
+  - name: network | Display ethernet interface name
+    ansible.builtin.debug:
+      msg: "{{ temp_netplan }}"
+
+
 
 
 
