@@ -8,97 +8,89 @@
   ansible.builtin.service_facts:
 
 # -------------------------------------------- #
-- name: network | NetworkManager
-  when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') != 'not-found'
-  block:
-  - name: network | Check NetworkManager service status
-    ansible.builtin.service:
-      name: NetworkManager.service
-      state: started #status
-    register: network_manager_status
 
-  - name: network | Display NetworkManager service status
-    ansible.builtin.debug:
-      msg: "{{ network_manager_status.status.ActiveState }}" # network_manager_status.status.ActiveState == 'active' # when: network_manager_status.status.ActiveState != 'active'
+- name: network | Check NetworkManager service status
+  ansible.builtin.service:
+    name: NetworkManager.service
+    state: started #status
+  register: network_manager_status
+  when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') != 'not-found'
+
+- name: network | Set fact if NetworkManager is running
+  ansible.builtin.set_fact:
+    network_manager_active: "{{ networkd_status.status.ActiveState == 'active' }}"
+
+#- name: network | Display NetworkManager service status
+#  ansible.builtin.debug:
+#    msg: "{{ network_manager_status.status.ActiveState }}" # network_manager_status.status.ActiveState == 'active' # when: network_manager_status.status.ActiveState != 'active'
 
 # -------------------------------------------- #
-- name: network | networkd
+
+- name: network | Check networkd service status
+  ansible.builtin.service:
+    name: systemd-networkd.service
+    state: started
+  register: networkd_status
   when: ansible_facts['services']['systemd-networkd.service']['status'] | default('not-found') != 'not-found'
-  block:
-  - name: network | Check networkd service status
-    ansible.builtin.service:
-      name: systemd-networkd.service
-      state: started
-    register: networkd_status
 
-  - name: network | Check for netplan configuration files
-    ansible.builtin.find:
-      paths: /etc/netplan
-      patterns: "*.yaml"
-    register: netplan_files
+- name: network | Set fact if networkd is running
+  ansible.builtin.set_fact:
+    networkd_active: "{{ networkd_status.status.ActiveState == 'active' }}"
 
-  - name: network | Read netplan configuration if files exist
-    ansible.builtin.slurp:
-      src: "{{ item.path }}"
-    loop: "{{ netplan_files.files }}"
-    register: netplan_content
-    when: netplan_files.files | length > 0
+- name: network | Check for netplan configuration files
+  ansible.builtin.find:
+    paths: /etc/netplan
+    patterns: "*.yaml"
+  register: netplan_files
 
-  - name: network | Determine netplan renderer
-    ansible.builtin.set_fact:
-      netplan_renderer: "unknown"
-    when: netplan_files.files | length == 0
-    no_log: true
+- name: network | Read netplan configuration if files exist
+  ansible.builtin.slurp:
+    src: "{{ item.path }}"
+  loop: "{{ netplan_files.files }}"
+  register: netplan_content
+  when: netplan_files.files | length > 0
 
-  - name: network | Read netplan content results
-    ansible.builtin.set_fact:
-      netplan_content_results: "{{ item.content | b64decode | from_yaml }}"
-    loop: "{{ netplan_content.results }}"
-    when: netplan_files.files | length > 0 and item.content is defined
-    no_log: true
+- name: network | Determine netplan renderer
+  ansible.builtin.set_fact:
+    netplan_renderer: "unknown"
+  when: netplan_files.files | length == 0
+  no_log: true
 
-  - name: network | Determine netplan renderer from content
-    ansible.builtin.set_fact:
-      netplan_renderer: "{{ netplan_content_results.network.renderer | default('none') }}"
+- name: network | Read netplan content results
+  ansible.builtin.set_fact:
+    netplan_content_results: "{{ item.content | b64decode | from_yaml }}"
+  loop: "{{ netplan_content.results }}"
+  when: netplan_files.files | length > 0 and item.content is defined
+  no_log: true
 
-  - name: network | Display ethernet interface name
-    ansible.builtin.debug:
-      msg: "{{ netplan_renderer }}"
+- name: network | Determine netplan renderer from content
+  ansible.builtin.set_fact:
+    netplan_renderer: "{{ netplan_content_results.network.renderer | default('none') }}"
+
+- name: network | Display ethernet interface name
+  ansible.builtin.debug:
+    msg: "{{ netplan_renderer }}"
 
 
 
 
 
-#  - name: network | Determine netplan renderer from content
-#    ansible.builtin.set_fact:
-#      netplan_renderer: "{{ item.content | b64decode | from_yaml | json_query('network.renderer') }}"
-#    loop: "{{ netplan_content.results }}"
-#    when: netplan_files.files | length > 0 and item.content is defined
+- name: network | Determine primary network manager
+  ansible.builtin.set_fact:
+    primary_network_manager: >-
+      {% if network_manager_active and netplan_renderer == 'NetworkManager' %}
+        NetworkManager (via Netplan)
+      {% elif network_manager_active %}
+        NetworkManager (direct)
+      {% elif netplan_renderer == 'networkd' or netplan_renderer == 'none' %}
+        Netplan (systemd-networkd)
+      {% else %}
+        Unknown or other method
+      {% endif %}
 
-#  - name: network | Display networkd service status
-#    ansible.builtin.debug:
-#      msg: "{{ networkd_status.status.ActiveState }}"
-
-  - name: network | Set fact if NetworkManager is running
-    ansible.builtin.set_fact:
-      network_manager_active: "{{ network_manager_status.status.ActiveState == 'active' }}"
-
-  - name: network | Determine primary network manager
-    ansible.builtin.set_fact:
-      primary_network_manager: >-
-        {% if network_manager_active and netplan_renderer == 'NetworkManager' %}
-          NetworkManager (via Netplan)
-        {% elif network_manager_active %}
-          NetworkManager (direct)
-        {% elif netplan_renderer == 'networkd' or netplan_renderer == 'none' %}
-          Netplan (systemd-networkd)
-        {% else %}
-          Unknown or other method
-        {% endif %}
-
-  - name: network | end
-    ansible.builtin.debug:
-      msg: "{{ primary_network_manager }}"
+- name: network | end
+  ansible.builtin.debug:
+    msg: "{{ primary_network_manager }}"
 
 # -------------------------------------------- #
 - name: network | Get ethernet interface name
