@@ -20,19 +20,9 @@
     network_manager_active: "{{ network_manager_status.status.ActiveState == 'active' }}"
   when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') != 'not-found'
 
-- name: Check NetworkManager service status
-  ansible.builtin.command: systemctl is-active NetworkManager
-  register: nm_status
-  ignore_errors: true
-
-- name: Set fact if NetworkManager is running
-  ansible.builtin.set_fact:
-    network_manager_active: "{{ nm_status.rc == 0 }}"
-
-- name: network | end
+- name: network | Display ethernet interface name
   ansible.builtin.debug:
-    msg: "{{ nm_status }}"
-
+    msg: "{{ ansible_facts['services']['NetworkManager.service']['status'] }}"
 
 
 # -------------------------------------------- #
