@@ -69,7 +69,7 @@
 
   - name: network | Display ethernet interface name
     ansible.builtin.debug:
-      msg: "{{ lookups(temp_netplan.network, 'dhcp4') | default('none') }}"
+      msg: "{{ lookup(temp_netplan.network, 'dhcp4') | default('none') }}"
 
 
 
