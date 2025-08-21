@@ -20,9 +20,9 @@
     network_manager_active: false
   when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') == 'not-found'
 
-- name: network | Display ethernet interface name
+- name: network | Debug network_manager_active
   ansible.builtin.debug:
-    msg: "{{ ansible_facts['services']['NetworkManager.service']['status'] }}"
+    msg: "{{ network_manager_active }}"
 
 
 # -------------------------------------------- #
