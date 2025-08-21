@@ -58,9 +58,9 @@
   - name: network | Determine primary network manager
     ansible.builtin.set_fact:
       primary_network_manager: >-
-        {% if network_manager_active and netplan_renderer == 'NetworkManager' %}
+        {% if network_manager_status.status.ActiveState == 'active' and netplan_renderer == 'NetworkManager' %}
           NetworkManager (via Netplan)
-        {% elif network_manager_active %}
+        {% elif network_manager_status.status.ActiveState == 'active' %}
           NetworkManager (direct)
         {% elif netplan_renderer == 'networkd' %}
           Netplan (systemd-networkd)
