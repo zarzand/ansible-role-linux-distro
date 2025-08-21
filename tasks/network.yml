@@ -68,7 +68,7 @@
     primary_network_manager: >-
       {% if network_manager_active and netplan_renderer == 'NetworkManager' %}
 #        NetworkManager (via Netplan)
-         NetworkManager-via-Netplan
+         NetworkManager_via_Netplan
       {% elif network_manager_active %}
 #        NetworkManager (direct)
          NetworkManager
