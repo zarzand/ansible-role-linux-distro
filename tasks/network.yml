@@ -29,6 +29,11 @@
   ansible.builtin.set_fact:
     network_manager_active: "{{ nm_status.rc == 0 }}"
 
+- name: network | end
+  ansible.builtin.debug:
+    msg: "{{ nm_status }}"
+
+
 
 # -------------------------------------------- #
 - name: network | Check networkd service state
@@ -82,18 +87,18 @@
 
 
 
-#- name: network | Determine primary network manager
-#  ansible.builtin.set_fact:
-#    primary_network_manager: >-
-#      {% if network_manager_active and netplan_renderer == 'NetworkManager' %}
-#        NetworkManager (via Netplan)
-#      {% elif network_manager_active %}
-#        NetworkManager (direct)
-#      {% elif netplan_renderer == 'networkd' or netplan_renderer == 'none' %}
-#        Netplan (systemd-networkd)
-#      {% else %}
-#        Unknown or other method
-#      {% endif %}
+- name: network | Determine primary network manager
+  ansible.builtin.set_fact:
+    primary_network_manager: >-
+      {% if network_manager_active and netplan_renderer == 'NetworkManager' %}
+        NetworkManager (via Netplan)
+      {% elif network_manager_active %}
+        NetworkManager (direct)
+      {% elif netplan_renderer == 'networkd' or netplan_renderer == 'none' %}
+        Netplan (systemd-networkd)
+      {% else %}
+        Unknown or other method
+      {% endif %}
 
 - name: network | end
   ansible.builtin.debug:
