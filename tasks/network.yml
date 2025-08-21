@@ -45,6 +45,14 @@
       netplan_renderer: "unknown"
     when: netplan_files.files | length == 0
 
+
+  - name: network | Display ethernet interface name
+    ansible.builtin.debug:
+      msg: "{{ item.content }}"
+    loop: "{{ netplan_content.results }}"
+
+
+
   - name: network | Determine netplan renderer from content
     ansible.builtin.set_fact:
       netplan_renderer: "{{ item.content | b64decode | from_yaml | json_query('network.renderer') }}"
