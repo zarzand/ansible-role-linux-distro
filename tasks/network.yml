@@ -18,12 +18,6 @@
 - name: network | Set fact if NetworkManager is active
   ansible.builtin.set_fact:
     network_manager_active: "{{ (ansible_facts['services']['NetworkManager.service']['status'] != 'not-found' | default('true') | default('false')) }}"
-  #when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') == 'not-found'
-
-- name: network | Debug network_manager_active
-  ansible.builtin.debug:
-    msg: "{{ network_manager_active }}"
-
 
 # -------------------------------------------- #
 - name: network | Check networkd service state
@@ -36,7 +30,6 @@
 - name: network | Set fact if networkd is active
   ansible.builtin.set_fact:
     networkd_active: "{{ (ansible_facts['services']['systemd-networkd.service']['status'] != 'not-found' | default('true') | default('false'))  }}"
-  #when: ansible_facts['services']['systemd-networkd.service']['status'] | default('not-found') != 'not-found'
 
 # -------------------------------------------- #
 - name: network | Check for netplan configuration files
@@ -93,7 +86,7 @@
 
 - name: network | networkd_active
   ansible.builtin.debug:
-    msg: "{{ networkd_active }}"
+    msg: "{{ primary_network_manager }}"
 
 # -------------------------------------------- #
 - name: network | Get ethernet interface name
