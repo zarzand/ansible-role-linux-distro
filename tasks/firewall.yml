@@ -1,0 +1,57 @@
+---
+
+- name: firewall | Using Firewalld
+  when: ansible_facts['services']['firewalld.service']['status'] | default('not-found') != 'not-found'
+  block:
+  - name: firewall | Display firewall
+    ansible.builtin.debug:
+      msg: "{{ ansible_facts['services']['firewalld.service']['status'] }}"
+#  - name: firewall | Create Firewalld zone if does not exist
+#    ansible.posix.firewalld:
+#      zone: "{{ firewalld_zone }}"
+#      state: present
+#      permanent: true
+#
+#  - name: firewall | Set Firewalld default zone
+#    ansible.builtin.shell:
+#      cmd: |
+#        firewall-cmd --set-default-zone="{{ firewalld_zone }}"
+#    when:
+#      - firewalld_set_default_zone
+#
+#  - name: firewall | Set Firewalld interface to zone
+#    ansible.posix.firewalld:
+#      zone: "{{ firewalld_zone }}"
+#      interface: "{{ firewalld_interface  }}"
+#      state: enabled
+#      permanent: true
+#      immediate: true
+#    when:
+#      - firewalld_set_default_interface
+#
+#  - name: firewall | Add Firewalld service to zone
+#    ansible.posix.firewalld:
+#      zone: "{{ firewalld_zone }}"
+#      service: "{{ item }}"
+#      state: enabled
+#      permanent: true
+#      immediate: true
+#    with_items: "{{ firewalld_services }}"
+#    notify: Reload Firewalld
+#
+#  - name: firewall | Add Firewalld ports to zone
+#    ansible.posix.firewalld:
+#      zone: "{{ firewalld_zone }}"
+#      port: "{{ item }}"
+#      state: enabled
+#      permanent: true
+#      immediate: true
+#    with_items: "{{ firewalld_ports }}"
+#    notify: Reload Firewalld
+
+- name: firewall | Using UFW
+  when: ansible_facts['services']['ufw.service']['status'] | default('not-found') != 'not-found'
+  block:
+  - name: firewall | Display firewall
+    ansible.builtin.debug:
+      msg: "{{ ansible_facts['services']['ufw.service']['status'] }}"

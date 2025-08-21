@@ -1,9 +1,5 @@
 ---
 
-- name: network | Gather service facts
-  ansible.builtin.service_facts:
-
-# -------------------------------------------- #
 - name: network | Check NetworkManager service state
   ansible.builtin.service:
     name: NetworkManager.service
