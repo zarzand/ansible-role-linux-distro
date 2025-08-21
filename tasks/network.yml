@@ -13,7 +13,8 @@
     name: NetworkManager.service
     state: started
   register: network_manager_status
-  when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') != 'not-found'
+  ignore_errors: true
+  #when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') != 'not-found'
 
 - name: network | Set fact if NetworkManager is active
   ansible.builtin.set_fact:
@@ -26,7 +27,8 @@
     name: systemd-networkd.service
     state: started
   register: networkd_status
-  when: ansible_facts['services']['systemd-networkd.service']['status'] | default('not-found') != 'not-found'
+  ignore_errors: true
+  #when: ansible_facts['services']['systemd-networkd.service']['status'] | default('not-found') != 'not-found'
 
 - name: network | Set fact if networkd is active
   ansible.builtin.set_fact:
