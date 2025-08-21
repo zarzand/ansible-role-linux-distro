@@ -91,9 +91,9 @@
         Unknown or other method
       {% endif %}
 
-- name: network | end
+- name: network | networkd_active
   ansible.builtin.debug:
-    msg: "{{ network_manager_active }}"
+    msg: "{{ networkd_active }}"
 
 # -------------------------------------------- #
 - name: network | Get ethernet interface name
