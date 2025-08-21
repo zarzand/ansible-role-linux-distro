@@ -1,22 +1,22 @@
 ---
 
-#- name: Import assert.yml
-#  ansible.builtin.import_tasks:
-#    file: assert.yml
-#  run_once: true
-#  delegate_to: localhost
-#
-#- name: Include hardware tasks
-#  ansible.builtin.include_tasks:
-#    file: hardware.yml
+- name: Import assert.yml
+  ansible.builtin.import_tasks:
+    file: assert.yml
+  run_once: true
+  delegate_to: localhost
 
-#- name: Include distribution-specific package tasks
-#  ansible.builtin.include_tasks: "tasks/{{ ansible_pkg_mgr | lower }}_package.yml"
-#  when: ansible_distribution is defined
+- name: Include hardware tasks
+  ansible.builtin.include_tasks:
+    file: hardware.yml
 
-#- name: Include distribution-specific firewall tasks
-#  ansible.builtin.include_tasks: "tasks/{{ ansible_pkg_mgr | lower }}_firewall.yml"
-#  when: ansible_distribution is defined
+- name: Include distribution-specific package tasks
+  ansible.builtin.include_tasks: "tasks/{{ ansible_pkg_mgr | lower }}_package.yml"
+  when: ansible_distribution is defined
+
+- name: Include distribution-specific firewall tasks
+  ansible.builtin.include_tasks: "tasks/{{ ansible_pkg_mgr | lower }}_firewall.yml"
+  when: ansible_distribution is defined
 
 - name: Include distribution-specific network tasks
   ansible.builtin.include_tasks: "tasks/network.yml"

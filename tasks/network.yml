@@ -1,9 +1,5 @@
 ---
 
-#- name: Print all available facts
-#  ansible.builtin.debug:
-#    msg: "{{ ansible_facts }}"
-
 - name: network | Gather service facts
   ansible.builtin.service_facts:
 
@@ -75,7 +71,7 @@
       {% elif networkd_active and netplan_renderer == 'unknown' %}
         SystemdNetworkd
       {% else %}
-        Unknown or other method
+        UnknownOrOtherMethod
       {% endif %}
 
 - name: network | networkd_active
@@ -94,50 +90,4 @@
     msg: "{{ item }}"
   with_items: "{{ ethernet_interface_name.stdout_lines }}"
 
-#
-#- name: Check NetworkManager service status
-#  ansible.builtin.command: systemctl is-active NetworkManager
-#  register: nm_status
-#  ignore_errors: true
-#
-#- name: Set fact if NetworkManager is running
-#  ansible.builtin.set_fact:
-#    network_manager_active: "{{ nm_status.rc == 0 }}"
-#
-#- name: Check for Netplan configuration files
-#  ansible.builtin.find:
-#    paths: /etc/netplan
-#    patterns: "*.yaml"
-#  register: netplan_files
-#
-#- name: Read Netplan configuration if files exist
-#  ansible.builtin.slurp:
-#    src: "{{ item.path }}"
-#  loop: "{{ netplan_files.files }}"
-#  register: netplan_content
-#  when: netplan_files.files | length > 0
-#
-#- name: Determine Netplan renderer
-#  ansible.builtin.set_fact:
-#    netplan_renderer: "unknown"
-#  when: netplan_files.files | length == 0
-#
-#- name: Determine Netplan renderer from content
-#  ansible.builtin.set_fact:
-#    netplan_renderer: "{{ item.content | b64decode | from_yaml | json_query('network.renderer') }}"
-#  loop: "{{ netplan_content.results }}"
-#  when: netplan_files.files | length > 0 and item.content is defined
-#
-#
-#- name: Determine primary network manager
-#  ansible.builtin.set_fact:
-#    primary_network_manager: >-
-#      {% if network_manager_active and netplan_renderer == 'NetworkManager' %}
-#        NetworkManager (via Netplan)
-#      {% elif network_manager_active %}
-#        NetworkManager (direct)
-#      {% elif netplan_renderer == 'networkd' %}
-#        Netplan (systemd-networkd)
-#      {% else %}
-#        Unknown or other method
-#      {% endif %}
+# -------------------------------------------- #
