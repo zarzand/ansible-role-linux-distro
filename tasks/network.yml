@@ -72,22 +72,22 @@
 
 
 
-- name: network | Determine primary network manager
-  ansible.builtin.set_fact:
-    primary_network_manager: >-
-      {% if network_manager_active and netplan_renderer == 'NetworkManager' %}
-        NetworkManager (via Netplan)
-      {% elif network_manager_active %}
-        NetworkManager (direct)
-      {% elif netplan_renderer == 'networkd' or netplan_renderer == 'none' %}
-        Netplan (systemd-networkd)
-      {% else %}
-        Unknown or other method
-      {% endif %}
+#- name: network | Determine primary network manager
+#  ansible.builtin.set_fact:
+#    primary_network_manager: >-
+#      {% if network_manager_active and netplan_renderer == 'NetworkManager' %}
+#        NetworkManager (via Netplan)
+#      {% elif network_manager_active %}
+#        NetworkManager (direct)
+#      {% elif netplan_renderer == 'networkd' or netplan_renderer == 'none' %}
+#        Netplan (systemd-networkd)
+#      {% else %}
+#        Unknown or other method
+#      {% endif %}
 
 - name: network | end
   ansible.builtin.debug:
-    msg: "{{ primary_network_manager }}"
+    msg: "{{ network_manager_active }}"
 
 # -------------------------------------------- #
 - name: network | Get ethernet interface name
