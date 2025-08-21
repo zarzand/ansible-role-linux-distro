@@ -68,15 +68,15 @@
     primary_network_manager: >-
       {% if network_manager_active and netplan_renderer == 'NetworkManager' %}
 #        NetworkManager (via Netplan)
-         NetworkManager_via_Netplan
+         NetworkManagerViaNetplan
       {% elif network_manager_active %}
 #        NetworkManager (direct)
          NetworkManager
       {% elif (netplan_renderer == 'networkd' or netplan_renderer == 'none') %}
 #        Netplan (systemd-networkd)
-         systemd_networkd_via_Netplan
+         SystemdNetworkdViaNetplan
       {% elif networkd_active and netplan_renderer == 'unknown' %}
-        systemd_networkd
+        SystemdNetworkd
       {% else %}
         Unknown or other method
       {% endif %}
