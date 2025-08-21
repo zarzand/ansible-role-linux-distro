@@ -8,35 +8,32 @@
   ansible.builtin.service_facts:
 
 # -------------------------------------------- #
-
-- name: network | Check NetworkManager service status
+- name: network | Check NetworkManager service state
   ansible.builtin.service:
     name: NetworkManager.service
-    state: started #status
+    state: started
   register: network_manager_status
   when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') != 'not-found'
 
-- name: network | Set fact if NetworkManager is running
+- name: network | Set fact if NetworkManager is active
   ansible.builtin.set_fact:
-    network_manager_active: "{{ networkd_status.status.ActiveState == 'active' }}"
-
-#- name: network | Display NetworkManager service status
-#  ansible.builtin.debug:
-#    msg: "{{ network_manager_status.status.ActiveState }}" # network_manager_status.status.ActiveState == 'active' # when: network_manager_status.status.ActiveState != 'active'
+    network_manager_active: "{{ network_manager_status.status.ActiveState == 'active' }}"
+  when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') != 'not-found'
 
 # -------------------------------------------- #
-
-- name: network | Check networkd service status
+- name: network | Check networkd service state
   ansible.builtin.service:
     name: systemd-networkd.service
     state: started
   register: networkd_status
   when: ansible_facts['services']['systemd-networkd.service']['status'] | default('not-found') != 'not-found'
 
-- name: network | Set fact if networkd is running
+- name: network | Set fact if networkd is active
   ansible.builtin.set_fact:
     networkd_active: "{{ networkd_status.status.ActiveState == 'active' }}"
+  when: ansible_facts['services']['systemd-networkd.service']['status'] | default('not-found') != 'not-found'
 
+# -------------------------------------------- #
 - name: network | Check for netplan configuration files
   ansible.builtin.find:
     paths: /etc/netplan
@@ -50,7 +47,7 @@
   register: netplan_content
   when: netplan_files.files | length > 0
 
-- name: network | Determine netplan renderer
+- name: network | Set fact netplan renderer is unknown when files not found
   ansible.builtin.set_fact:
     netplan_renderer: "unknown"
   when: netplan_files.files | length == 0
