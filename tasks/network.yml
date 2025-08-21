@@ -65,7 +65,7 @@
 
   - name: network | Display ethernet interface name
     ansible.builtin.debug:
-      msg: "{{ temp_netplan }}"
+      msg: "{{ temp_netplan.network.renderer | default('none') }}"
 
 
 
