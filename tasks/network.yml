@@ -29,7 +29,7 @@
 
 - name: network | Set fact if networkd is active
   ansible.builtin.set_fact:
-    networkd_active: "{{ (ansible_facts['services']['systemd-networkd.service']['status'] != 'not-found' | default('true') | default('false'))  }}"
+    networkd_active: "{{ ansible_facts['services']['systemd-networkd.service']['status'] != 'not-found' | default('true') | default('false') }}"
 
 # -------------------------------------------- #
 - name: network | Check for netplan configuration files
