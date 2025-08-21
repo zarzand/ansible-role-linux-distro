@@ -17,8 +17,8 @@
 
 - name: network | Set fact if NetworkManager is active
   ansible.builtin.set_fact:
-    network_manager_active: false
-  when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') == 'not-found'
+    network_manager_active: "{{ (ansible_facts['services']['NetworkManager.service']['status'] != 'not-found' | default('true') | default('false')) }}"
+  #when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') == 'not-found'
 
 - name: network | Debug network_manager_active
   ansible.builtin.debug:
@@ -35,12 +35,8 @@
 
 - name: network | Set fact if networkd is active
   ansible.builtin.set_fact:
-    networkd_active: false | default('true')
-  when: ansible_facts['services']['systemd-networkd.service']['status'] | default('not-found') == 'not-found'
-
-- name: network | Debug networkd_active
-  ansible.builtin.debug:
-    msg: "{{ networkd_active }}"
+    networkd_active: "{{ networkd_status.status.ActiveState == 'active' }}"
+  when: ansible_facts['services']['systemd-networkd.service']['status'] | default('not-found') != 'not-found'
 
 # -------------------------------------------- #
 - name: network | Check for netplan configuration files
