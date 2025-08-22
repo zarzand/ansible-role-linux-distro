@@ -13,3 +13,17 @@
 
 - name: Reboot Server
   ansible.builtin.reboot:
+
+#### Generating Netplan Configuration ####
+- name: Generating Netplan Configuration
+  ansible.builtin.command: netplan generate
+  listen: netplan generate config
+  notify: netplan apply config
+  become: true
+
+#### Applying Netplan Configuration ####
+- name: Applying Netplan Configuration
+  ansible.builtin.command: netplan apply
+  listen: netplan apply config
+  become: true
+  #when: netplan_apply
