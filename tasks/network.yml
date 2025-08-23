@@ -21,12 +21,11 @@
     netplan_renderer: "unknown"
   when: netplan_files.files | length == 0
 
-
 - name: network | Read netplan content results
   ansible.builtin.set_fact:
     netplan_content_decoded: "{{ netplan_files.files | map(attribute='path') | map('slurp') | map(attribute='content') | map('b64decode') | map('from_yaml') | list }}"
   when: netplan_files.files | length > 0
-  no_log: true
+
 
 - name: network | Determine netplan renderer from content
   ansible.builtin.set_fact:
