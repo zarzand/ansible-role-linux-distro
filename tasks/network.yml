@@ -1,78 +1,56 @@
 ---
 
-- name: network | Check NetworkManager service state
-  ansible.builtin.service:
-    name: NetworkManager.service
-    state: started
-  register: network_manager_status
-  when: ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') != 'not-found'
-
 - name: network | Set fact if NetworkManager is active
   ansible.builtin.set_fact:
-    network_manager_active: "{{ (ansible_facts['services']['NetworkManager.service']['status'] | default('not-found') != 'not-found' | default('true') | default('false'))  }}"
+    network_manager_active: "{{ (ansible_facts.services['NetworkManager.service'].status | default('not-found')) != 'not-found' }}"
 
 # -------------------------------------------- #
-- name: network | Check networkd service state
-  ansible.builtin.service:
-    name: systemd-networkd.service
-    state: started
-  register: networkd_status
-  when: ansible_facts['services']['systemd-networkd.service']['status'] | default('not-found') != 'not-found'
-
-- name: network | Set fact if networkd is active
+- name: network | Set fact if systemd-networkd is active
   ansible.builtin.set_fact:
-    networkd_active: "{{ (ansible_facts['services']['systemd-networkd.service']['status'] | default('not-found') != 'not-found' | default('true') | default('false')) }}"
+    networkd_active: "{{ (ansible_facts.services['systemd-networkd.service'].status | default('not-found')) != 'not-found' }}"
 
 # -------------------------------------------- #
-- name: network | Check for netplan configuration files
+- name: network | Find netplan configuration files
   ansible.builtin.find:
     paths: /etc/netplan
     patterns: "*.yaml"
   register: netplan_files
 
-- name: network | Read netplan configuration if files exist
-  ansible.builtin.slurp:
-    src: "{{ item.path }}"
-  loop: "{{ netplan_files.files }}"
-  register: netplan_content
-  when: netplan_files.files | length > 0
-
-- name: network | Set fact netplan renderer is unknown when files not found
+- name: network | Set netplan renderer unknown if no configuration files
   ansible.builtin.set_fact:
     netplan_renderer: "unknown"
   when: netplan_files.files | length == 0
-  no_log: true
+
 
 - name: network | Read netplan content results
   ansible.builtin.set_fact:
-    netplan_content_results: "{{ item.content | b64decode | from_yaml }}"
-  loop: "{{ netplan_content.results }}"
-  when: netplan_files.files | length > 0 and item.content is defined
+    netplan_content_decoded: "{{ netplan_files.files | map(attribute='path') | map('slurp') | map(attribute='content') | map('b64decode') | map('from_yaml') | list }}"
+  when: netplan_files.files | length > 0
   no_log: true
 
 - name: network | Determine netplan renderer from content
   ansible.builtin.set_fact:
-    netplan_renderer: "{{ netplan_content_results.network.renderer | default('none') }}"
+    netplan_renderer: "{{ netplan_content_decoded | map(attribute='network.renderer') | select('defined') | first | default('none') }}"
   when: netplan_files.files | length > 0
 
 - name: network | Determine primary network manager
   ansible.builtin.set_fact:
     primary_network_manager: >-
       {% if network_manager_active and netplan_renderer == 'NetworkManager' %}
-         NetworkManagerViaNetplan
+        NetworkManagerViaNetplan
       {% elif network_manager_active %}
-         NetworkManager
-      {% elif (netplan_renderer == 'networkd' or netplan_renderer == 'none') %}
-         SystemdNetworkdViaNetplan
+        NetworkManager
+      {% elif netplan_renderer in ['networkd', 'none'] %}
+        SystemdNetworkdViaNetplan
       {% elif networkd_active and netplan_renderer == 'unknown' %}
         SystemdNetworkd
       {% else %}
         UnknownOrOtherMethod
       {% endif %}
 
-- name: network | networkd_active
+- name: network | Print detected network manager
   ansible.builtin.debug:
-    msg: "{{ primary_network_manager }}"
+    var: primary_network_manager
 
 # -------------------------------------------- #
 - name: network | Get ethernet interface name
@@ -93,64 +71,64 @@
 
 # -------------------------------------------- #
 
-#- name: network | Change NetworkManager configuration
-#  community.general.nmcli:
-#    conn_name: "{{ nmcli_connection_name_0 }}"
-#    ifname: "{{ nmcli_device_interface_name_0 }}"
-#    type: "{{ nmcli_connection_type }}"
-#    ip4: "{{ ipv4_addresses }}/{{ ipv4_addresses_subnet_mask }}"
-#    method4: "manual"
-#    gw4: "{{ ipv4_gateway }}"
-#    method6: "disabled"
-#    dns4:
-#      - "{{ a_dns1 }}"
-#      - "{{ a_dns2 }}"
-#    state: present
-#  notify:
-#    - Reboot server
-#  when: primary_network_manager == 'NetworkManager'
-#
-## -------------------------------------------- #
-#- name: prepare server network config
-#  vars:
-#    my_interface: "{{ ansible_default_ipv4.interface }}"
-#    my_interface_data:
-#      dhcp4: no
-#      dhcp6: no
-#      accept-ra: no
-#      addresses:
-#        - "{{ ipv4_addresses }}/{{ ipv4_addresses_subnet_mask }}"
-#      routes:
-#        - to: 0.0.0.0/0 #default
-#          via: "{{ ipv4_gateway }}"
-#      nameservers:
-#        addresses:
-#          - "{{ a_dns1 }}"
-#          - "{{ a_dns2 }}"
-##        search:
-##          "{{ a_domain }}" #"{{ ansible_dns.search | default('not_found_in_facts') }}"
-#
-#  ansible.builtin.set_fact:
-#    my_network:
-#      ethernets: "{{ { my_interface:my_interface_data } }}"
-#      version: 2
-#      renderer: networkd
-#
-#- name: Set network config
-#  ansible.builtin.set_fact:
-#    netplan_configuration:
-#      network: "{{ my_network }}"
-#
-#- name: Showing the new server network config
-#  ansible.builtin.debug:
-#    var: netplan_configuration
-#
-#- name: Change server network config
-#  ansible.builtin.template:
-#    src: netplan.j2
-#    dest: "/etc/netplan/99-network-config.yaml"
-#    mode: 0644
-#    backup: no
-#  become: true
-#  when: netplan_configuration != []
-#  notify: netplan generate config
+- name: network | Change NetworkManager configuration
+  community.general.nmcli:
+    conn_name: "{{ nmcli_connection_name_0 }}"
+    ifname: "{{ nmcli_device_interface_name_0 }}"
+    type: "{{ nmcli_connection_type }}"
+    ip4: "{{ ipv4_addresses }}/{{ ipv4_addresses_subnet_mask }}"
+    method4: "manual"
+    gw4: "{{ ipv4_gateway }}"
+    method6: "disabled"
+    dns4:
+      - "{{ a_dns1 }}"
+      - "{{ a_dns2 }}"
+    state: present
+  notify:
+    - Reboot server
+  when: primary_network_manager == 'NetworkManager'
+
+# -------------------------------------------- #
+- name: prepare server network config
+  vars:
+    my_interface: "{{ ansible_default_ipv4.interface }}"
+    my_interface_data:
+      dhcp4: no
+      dhcp6: no
+      accept-ra: no
+      addresses:
+        - "{{ ipv4_addresses }}/{{ ipv4_addresses_subnet_mask }}"
+      routes:
+        - to: 0.0.0.0/0 #default
+          via: "{{ ipv4_gateway }}"
+      nameservers:
+        addresses:
+          - "{{ a_dns1 }}"
+          - "{{ a_dns2 }}"
+#        search:
+#          "{{ a_domain }}" #"{{ ansible_dns.search | default('not_found_in_facts') }}"
+
+  ansible.builtin.set_fact:
+    my_network:
+      ethernets: "{{ { my_interface:my_interface_data } }}"
+      version: 2
+      renderer: networkd
+
+- name: Set network config
+  ansible.builtin.set_fact:
+    netplan_configuration:
+      network: "{{ my_network }}"
+
+- name: Showing the new server network config
+  ansible.builtin.debug:
+    var: netplan_configuration
+
+- name: Change server network config
+  ansible.builtin.template:
+    src: netplan.j2
+    dest: "/etc/netplan/99-network-config.yaml"
+    mode: 0644
+    backup: no
+  become: true
+  when: netplan_configuration != []
+  notify: netplan generate config
