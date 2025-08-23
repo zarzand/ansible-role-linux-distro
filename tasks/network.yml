@@ -10,11 +10,16 @@
     networkd_active: "{{ (ansible_facts.services['systemd-networkd.service'].status | default('not-found')) != 'not-found' }}"
 
 # -------------------------------------------- #
-- name: network | Check for netplan configuration files
+- name: network | Find netplan configuration files
   ansible.builtin.find:
     paths: /etc/netplan
     patterns: "*.yaml"
   register: netplan_files
+
+- name: network | Set netplan renderer unknown if no configuration files
+  ansible.builtin.set_fact:
+    netplan_renderer: "unknown"
+  when: netplan_files.files | length == 0
 
 - name: network | Read netplan configuration if files exist
   ansible.builtin.slurp:
@@ -23,33 +28,27 @@
   register: netplan_content
   when: netplan_files.files | length > 0
 
-- name: network | Set fact netplan renderer is unknown when files not found
+- name: network | Load netplan YAML content
   ansible.builtin.set_fact:
-    netplan_renderer: "unknown"
-  when: netplan_files.files | length == 0
-  no_log: true
-
-- name: network | Read netplan content results
-  ansible.builtin.set_fact:
-    netplan_content_results: "{{ item.content | b64decode | from_yaml }}"
+    netplan_content_decoded: "{{ item.content | b64decode | from_yaml }}"
   loop: "{{ netplan_content.results }}"
   when: netplan_files.files | length > 0 and item.content is defined
   no_log: true
 
 - name: network | Determine netplan renderer from content
   ansible.builtin.set_fact:
-    netplan_renderer: "{{ netplan_content_results.network.renderer | default('none') }}"
+    netplan_renderer: "{{ netplan_content_decoded.network.renderer | default('none') }}"
   when: netplan_files.files | length > 0
 
 - name: network | Determine primary network manager
   ansible.builtin.set_fact:
     primary_network_manager: >-
       {% if network_manager_active and netplan_renderer == 'NetworkManager' %}
-         NetworkManagerViaNetplan
+        NetworkManagerViaNetplan
       {% elif network_manager_active %}
-         NetworkManager
-      {% elif (netplan_renderer == 'networkd' or netplan_renderer == 'none') %}
-         SystemdNetworkdViaNetplan
+        NetworkManager
+      {% elif netplan_renderer in ['networkd', 'none'] %}
+        SystemdNetworkdViaNetplan
       {% elif networkd_active and netplan_renderer == 'unknown' %}
         SystemdNetworkd
       {% else %}
@@ -58,7 +57,7 @@
 
 - name: network | networkd_active
   ansible.builtin.debug:
-    msg: "{{ primary_network_manager }}"
+    var: primary_network_manager
 
 # -------------------------------------------- #
 - name: network | Get ethernet interface name
