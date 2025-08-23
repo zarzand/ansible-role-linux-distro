@@ -88,46 +88,46 @@
   when: primary_network_manager == 'NetworkManager'
 
 # -------------------------------------------- #
-- name: prepare server network config
-  vars:
-    my_interface: "{{ ansible_default_ipv4.interface }}"
-    my_interface_data:
-      dhcp4: no
-      dhcp6: no
-      accept-ra: no
-      addresses:
-        - "{{ ipv4_addresses }}/{{ ipv4_addresses_subnet_mask }}"
-      routes:
-        - to: 0.0.0.0/0 #default
-          via: "{{ ipv4_gateway }}"
-      nameservers:
-        addresses:
-          - "{{ a_dns1 }}"
-          - "{{ a_dns2 }}"
-#        search:
-#          "{{ a_domain }}" #"{{ ansible_dns.search | default('not_found_in_facts') }}"
-
-  ansible.builtin.set_fact:
-    my_network:
-      ethernets: "{{ { my_interface:my_interface_data } }}"
-      version: 2
-      renderer: networkd
-
-- name: Set network config
-  ansible.builtin.set_fact:
-    netplan_configuration:
-      network: "{{ my_network }}"
-
-- name: Showing the new server network config
-  ansible.builtin.debug:
-    var: netplan_configuration
-
-- name: Change server network config
-  ansible.builtin.template:
-    src: netplan.j2
-    dest: "/etc/netplan/99-network-config.yaml"
-    mode: 0644
-    backup: no
-  become: true
-  when: netplan_configuration != []
-  notify: netplan generate config
+#- name: prepare server network config
+#  vars:
+#    my_interface: "{{ ansible_default_ipv4.interface }}"
+#    my_interface_data:
+#      dhcp4: no
+#      dhcp6: no
+#      accept-ra: no
+#      addresses:
+#        - "{{ ipv4_addresses }}/{{ ipv4_addresses_subnet_mask }}"
+#      routes:
+#        - to: 0.0.0.0/0 #default
+#          via: "{{ ipv4_gateway }}"
+#      nameservers:
+#        addresses:
+#          - "{{ a_dns1 }}"
+#          - "{{ a_dns2 }}"
+##        search:
+##          "{{ a_domain }}" #"{{ ansible_dns.search | default('not_found_in_facts') }}"
+#
+#  ansible.builtin.set_fact:
+#    my_network:
+#      ethernets: "{{ { my_interface:my_interface_data } }}"
+#      version: 2
+#      renderer: networkd
+#
+#- name: Set network config
+#  ansible.builtin.set_fact:
+#    netplan_configuration:
+#      network: "{{ my_network }}"
+#
+#- name: Showing the new server network config
+#  ansible.builtin.debug:
+#    var: netplan_configuration
+#
+#- name: Change server network config
+#  ansible.builtin.template:
+#    src: netplan.j2
+#    dest: "/etc/netplan/99-network-config.yaml"
+#    mode: 0644
+#    backup: no
+#  become: true
+#  when: netplan_configuration != []
+#  notify: netplan generate config
