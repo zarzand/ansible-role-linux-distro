@@ -1,0 +1,29 @@
+---
+
+- name: cron | Create maintenance folder
+  ansible.builtin.file:
+    state: directory
+    path: "/opt/maintenance"
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: cron | Copy maintenance file
+  ansible.builtin.template:
+    src: "maintenance.sh.j2"
+    dest: "/opt/maintenance/maintenance.sh"
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: cron | Scheduled to run at 2 AM on any Sunday between the 1st and 7th of the month
+  ansible.builtin.cron:
+    name: "{{ ansible_distribution }} maintenance script on sunday of first week of the month"
+    user: "root"
+    minute: "0"
+    hour: "2"
+    day: "1-7"
+    month: "*"
+    weekday: "0"
+    job: "/opt/maintenance/maintenance.sh"
+    state: present

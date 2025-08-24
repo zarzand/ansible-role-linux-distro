@@ -1,29 +1,35 @@
 ---
-#### etc/hosts ####
-- name: Restart etc hosts
-  ansible.builtin.service:
-    name: hostsd
-    state: restarted
 
-#### sshd ####
-- name: Restart sshd
-  ansible.builtin.service:
-    name: sshd
-    state: restarted
+#- name: Restart Hostsd
+#  ansible.builtin.service:
+#    name: hostsd
+#    state: restarted
+#
+#- name: Restart SSHD
+#  ansible.builtin.service:
+#    name: sshd
+#    state: restarted
 
 - name: Reboot Server
   ansible.builtin.reboot:
 
-#### Generating Netplan Configuration ####
 - name: Generating Netplan Configuration
   ansible.builtin.command: netplan generate
-  listen: netplan generate config
-  notify: netplan apply config
   become: true
+  notify:
+    - Applying Netplan Configuration
 
-#### Applying Netplan Configuration ####
 - name: Applying Netplan Configuration
   ansible.builtin.command: netplan apply
-  listen: netplan apply config
   become: true
-  #when: netplan_apply
+  notify:
+    - Reboot Server
+
+- name: Reload Firewalld
+  ansible.builtin.service:
+    name: firewalld
+    state: reloaded
+
+- name: Reload UFW
+  ansible.builtin.command: ufw reload
+  become: true

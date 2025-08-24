@@ -2,8 +2,60 @@
 
 {{ ansible_managed | comment }}
 
-yum clean all -y
-dnf update -y
-dnf upgrade -y
-#dnf upgrade --refresh
-dnf system-upgrade reboot
+set -e
+
+# Detect distro family
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    distro=$ID
+else
+    echo "Cannot detect Linux distribution" >&2
+    exit 1
+fi
+
+echo "Detected distro: $distro"
+
+case "$distro" in
+    ubuntu|debian|raspbian)
+        echo "Running apt update && apt upgrade..."
+        sudo apt-get update -y
+        sudo apt-get upgrade -y
+        sudo apt-get autoremove -y
+        ;;
+    centos|rhel)
+        echo "Running yum update..."
+        sudo yum update -y
+        ;;
+    rocky|almalinux|ol)
+        echo "Running dnf update..."
+        sudo dnf update -y
+        ;;
+    fedora)
+        echo "Running dnf upgrade..."
+        sudo dnf upgrade -y
+        ;;
+    opensuse*|sles)
+        echo "Running zypper refresh && update..."
+        sudo zypper refresh
+        sudo zypper update -y
+        ;;
+    arch|archarm|manjaro)
+        echo "Running pacman -Syu..."
+        sudo pacman -Syu --noconfirm
+        ;;
+    *)
+        echo "Unsupported distro: $distro" >&2
+        exit 1
+        ;;
+esac
+
+if command -v systemctl &>/dev/null; then
+    sudo systemctl reboot
+elif command -v shutdown &>/dev/null; then
+    sudo shutdown -r now
+elif command -v reboot &>/dev/null; then
+    sudo reboot
+else
+    echo "No known reboot command found." >&2
+    exit 1
+fi
