@@ -1,7 +1,6 @@
 ---
 ##### User ####
-#a_sudo_user: ""
-#a_sudo_user_comment: ""
+
 #
 ##### Set Hostname ####
 #a_domain: ""
@@ -16,9 +15,9 @@
 #hosts_entries: []
 #
 ##### IPv4 ####
-#ipv4_addresses: ""
-#ipv4_addresses_subnet_mask: ""
-#ipv4_gateway: ""
+ipv4_addresses: ""
+ipv4_addresses_subnet_mask: ""
+ipv4_gateway: ""
 #
 ##### Network Manager (nmcli) ####
 #nmcli_connection_current_name: ""
@@ -28,11 +27,17 @@
 #nmcli_device_interface_name_1: ""
 #nmcli_connection_type: ""
 #
+
+
 #### Install Packages ####
 linux_distro_packages: []
 
-#### etc ####
-hosts_file_path: /etc/hosts
+#### Directory Path ####
+hosts_files_path: /etc/hosts
+netplan_files_path: /etc/netplan
 
 #### User ####
 default_sudo_user: pinube
+
+add_sudo_users: ""
+sudo_user_comment: ""

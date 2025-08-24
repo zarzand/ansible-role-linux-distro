@@ -6,10 +6,10 @@
   run_once: true
   delegate_to: localhost
 
-- name: Include hardware tasks
-  ansible.builtin.include_tasks:
-    file: hardware.yml
-
+#- name: Include hardware tasks
+#  ansible.builtin.include_tasks:
+#    file: hardware.yml
+#
 #- name: Include distribution-specific package tasks
 #  ansible.builtin.include_tasks: "tasks/{{ ansible_pkg_mgr | lower }}_package.yml"
 #  when: ansible_distribution is defined
