@@ -1,0 +1,72 @@
+---
+
+- name: default | Set timezone
+  become: true
+  community.general.timezone:
+    name: America/Los_Angeles
+
+- name: default | Set hostname
+  ansible.builtin.hostname:
+    name: "{{ default_hostname }}"
+
+- name: default | Set hosts for dns
+  ansible.builtin.template:
+    src: hosts.j2
+    dest: "{{ hosts_files_path }}"
+    owner: root
+    group: root
+    mode: 0644
+#    backup: no
+
+- name: default | Add new user
+  ansible.builtin.user:
+    name: "{{ add_sudo_user }}"
+    comment: "{{ add_sudo_user_comment }}"
+    uid: 1010
+    group: root
+    state: present
+    shell: /bin/bash
+    create_home: yes
+  when:
+    - (add_sudo_user | default('')) | length > 0
+    - (add_sudo_user_comment | default('')) | length > 0
+
+- name: default | Make sudo without password for users
+  ansible.builtin.copy:
+    dest: "{{ sudoers_files_path }}/{{ sudoers_file_name }}"
+    content: |
+      {% for user in sudo_users | unique %}
+      {{ user }} ALL=(ALL) NOPASSWD:ALL
+      {% endfor %}
+    owner: root
+    group: root
+    mode: '0440'
+    validate: /usr/sbin/visudo -cf %s
+  vars:
+    sudo_users:
+      - "{{ default_sudo_user }}"
+      - "{{ add_sudo_user }}"
+  when:
+    - (default_sudo_user | default('')) | length > 0
+    - (add_sudo_user | default('')) | length > 0
+
+- name: default | Find all sudoers files
+  ansible.builtin.find:
+    paths: "{{ sudoers_files_path }}"
+    file_type: file
+  register: sudoers_files
+
+- name: default | Delete all files except those in exclusion list
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ sudoers_files.files }}"
+  when: item.path | basename not in sudoers_delete_file_exclusion
+
+- name: Set authorized key for user
+  ansible.posix.authorized_key:
+    user: "{{ add_sudo_user }}"
+    state: present
+    key: "{{ lookup('file', lookup('env','HOME') + lookup('env','Users') + '/.ssh/id_rsa_' + add_sudo_user + '.pub') }}"  #"{{ lookup('file', '/Users/{{ a_temp_user }}/.ssh/id_rsa_{{ a_sudo_user }}.pub') }}"
+  when:
+    - (add_sudo_user | default('')) | length > 0

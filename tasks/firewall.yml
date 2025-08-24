@@ -1,57 +1,114 @@
 ---
 
-- name: firewall | Using Firewalld
-  when: ansible_facts['services']['firewalld.service']['status'] | default('not-found') != 'not-found'
+- name: firewall | Using firewalld
+  when:
+    - (ansible_facts.services['firewalld.service'] is defined)
+    - ansible_facts.services['firewalld.service'].status == 'enabled'
+    - ansible_facts.services['firewalld.service'].state == 'running'
   block:
-  - name: firewall | Display firewall
-    ansible.builtin.debug:
-      msg: "{{ ansible_facts['services']['firewalld.service']['status'] }}"
-#  - name: firewall | Create Firewalld zone if does not exist
-#    ansible.posix.firewalld:
-#      zone: "{{ firewalld_zone }}"
-#      state: present
-#      permanent: true
-#
-#  - name: firewall | Set Firewalld default zone
-#    ansible.builtin.shell:
-#      cmd: |
-#        firewall-cmd --set-default-zone="{{ firewalld_zone }}"
-#    when:
-#      - firewalld_set_default_zone
-#
-#  - name: firewall | Set Firewalld interface to zone
-#    ansible.posix.firewalld:
-#      zone: "{{ firewalld_zone }}"
-#      interface: "{{ firewalld_interface  }}"
-#      state: enabled
-#      permanent: true
-#      immediate: true
-#    when:
-#      - firewalld_set_default_interface
-#
-#  - name: firewall | Add Firewalld service to zone
-#    ansible.posix.firewalld:
-#      zone: "{{ firewalld_zone }}"
-#      service: "{{ item }}"
-#      state: enabled
-#      permanent: true
-#      immediate: true
-#    with_items: "{{ firewalld_services }}"
-#    notify: Reload Firewalld
-#
-#  - name: firewall | Add Firewalld ports to zone
-#    ansible.posix.firewalld:
-#      zone: "{{ firewalld_zone }}"
-#      port: "{{ item }}"
-#      state: enabled
-#      permanent: true
-#      immediate: true
-#    with_items: "{{ firewalld_ports }}"
-#    notify: Reload Firewalld
+  - name: firewall | Create Firewalld zone if does not exist
+    ansible.posix.firewalld:
+      zone: "{{ firewall_zone }}"
+      state: present
+      permanent: true
 
-- name: firewall | Using UFW
-  when: ansible_facts['services']['ufw.service']['status'] | default('not-found') != 'not-found'
+  - name: firewall | Set firewalld default zone
+    ansible.builtin.shell:
+      cmd: |
+        firewall-cmd --set-default-zone="{{ firewall_zone }}"
+    when:
+      - firewall_set_default_zone | default(false) | bool
+
+  - name: firewall | Set firewalld interface if not defined
+    ansible.builtin.set_fact:
+      firewall_interfaces: "{{ item.new_name }}"
+    with_items: "{{ ethernet_interface_list }}"
+    when:
+      - firewall_interface is not defined
+      - item.link == 'yes'
+      - item.state == 'up'
+
+  - name: firewall | Set firewalld interface to zone
+    ansible.posix.firewalld:
+      zone: "{{ firewall_zone }}"
+      interface: "{{ item  }}"
+      state: enabled
+      permanent: true
+      immediate: true
+    with_items: "{{ firewall_interfaces }}"
+    when:
+      - firewall_set_default_interface | default(false) | bool
+
+  - name: firewall | Add firewalld services to zone
+    ansible.posix.firewalld:
+      zone: "{{ firewall_zone }}"
+      service: "{{ item.service_name }}"
+      state: enabled
+      permanent: true
+      immediate: true
+    loop: "{{ firewall_services }}"
+
+  - name: firewall | Add firewalld ports to zone
+    ansible.posix.firewalld:
+      zone: "{{ firewall_zone }}"
+      port: "{{ item.port }}/{{ item.protocol }}"
+      state: enabled
+      permanent: true
+      immediate: true
+    loop: "{{ firewall_ports }}"
+
+  - name: firewall | Reload Firewalld
+    ansible.builtin.service:
+      name: firewalld
+      state: reloaded
+
+- name: firewall | Using ufw
+  when:
+    - (ansible_facts.services['ufw.service'] is defined)
+    - ansible_facts.services['ufw.service'].status == 'enabled'
   block:
-  - name: firewall | Display firewall
-    ansible.builtin.debug:
-      msg: "{{ ansible_facts['services']['ufw.service']['status'] }}"
+
+  - name: firewall | Set ufw interface if not defined
+    ansible.builtin.set_fact:
+      firewall_interfaces: "{{ item.new_name }}"
+    with_items: "{{ ethernet_interface_list }}"
+    when:
+      - firewall_interface is not defined
+      - item.link == 'yes'
+      - item.state == 'up'
+
+  - name: firewall | Add ufw services
+    community.general.ufw:
+      rule: allow
+      interface: >-
+          {{
+            firewall_interfaces
+            if set_default_interface | default(false) | bool
+            else omit
+          }}
+      name: "{{ item.service_name | default(omit) }}"
+    loop: "{{ firewall_services }}"
+
+  - name: firewall | Add ufw ports
+    community.general.ufw:
+      rule: allow
+      interface: >-
+          {{
+            firewall_interfaces
+            if set_default_interface | default(false) | bool
+            else omit
+          }}
+      port: "{{ item.port | default(omit) }}"
+      proto: "{{ item.protocol | default(omit) }}"
+    loop: "{{ firewall_ports }}"
+
+  - name: firewall | Enable ufw with sane defaults
+    community.general.ufw:
+      state: enabled
+      policy: deny
+
+  - name: firewall | Reload ufw
+    ansible.builtin.shell:
+      cmd: |       
+        ufw reload
+    become: true

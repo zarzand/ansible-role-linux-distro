@@ -1,38 +1,57 @@
 ---
-##### User ####
-#a_sudo_user: ""
-#a_sudo_user_comment: ""
-#
-##### Set Hostname ####
-#a_domain: ""
-#a_hostname: ""
-#
-##### DNS ####
-#a_dns1: ""
-#a_dns2: ""
-#
-##### etc ####
-## Custom hosts entries to be added
-#hosts_entries: []
-#
-##### IPv4 ####
-#ipv4_addresses: ""
-#ipv4_addresses_subnet_mask: ""
-#ipv4_gateway: ""
-#
-##### Network Manager (nmcli) ####
-#nmcli_connection_current_name: ""
-#nmcli_connection_name_0: ""
-#nmcli_connection_name_1: ""
-#nmcli_device_interface_name_0: ""
-#nmcli_device_interface_name_1: ""
-#nmcli_connection_type: ""
-#
-#### Install Packages ####
+
+# =====================================================
+# 📦 Packages
+# =====================================================
 linux_distro_packages: []
 
-#### etc ####
-hosts_file_path: /etc/hosts
+# =====================================================
+# 📂 Files
+# =====================================================
+#### Directory Path ####
+hosts_files_path: "/etc/hosts"
+sudoers_files_path: "/etc/sudoers.d"
+udev_rules_files_path: "/etc/udev/rules.d"
+network_manager_files_path: "/etc/NetworkManager/system-connections"
+netplan_files_path: "/etc/netplan"
+systemd_networkd_files_path: "/etc/systemd/network"
 
-#### User ####
-default_sudo_user: pinube
+# =====================================================
+# 🖥️ Hardware / System info
+# =====================================================
+machine_model_name: ""
+raspberry_pi_disable_bluetooth: ""
+raspberry_pi_disable_wifi: ""
+
+#### Host ####
+sudoers_file_name: "99-sudo-users"
+sudoers_delete_file_exclusion:
+  - "{{ sudoers_file_name }}"
+  - "99_kvmd"
+network_interface_file_name: "99-network-interface"
+network_config_name: "99-network-config"
+
+#### Add User ####
+add_sudo_user: ""
+add_sudo_user_comment: ""
+
+##### IPv4 ####
+ipv4_addresses: ""
+ipv4_addresses_subnet_mask: ""
+ipv4_gateway: ""
+ipv4_dns: []
+
+##### Firewall ####
+firewall_set_default_zone: ""
+firewall_zone: "public"
+firewall_set_default_interface: ""
+firewall_interfaces: []
+firewall_services: []
+firewall_ports: []
+
+##### Default ####
+default_sudo_user: "pinube"
+default_timezone: "America/Los_Angeles"
+default_domain: "pinube.net"
+default_hostname: ""
+default_hosts: []

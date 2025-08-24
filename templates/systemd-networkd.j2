@@ -1,0 +1,12 @@
+{{ ansible_managed | comment }}
+
+{% for item in ethernet_interface_list if item.link == 'yes' and item.state == 'up' %}
+[Match]
+Name={{ item.new_name }}
+{% endfor %}
+
+[Network]
+Address={{ ipv4_addresses }}/{{ ipv4_addresses_subnet_mask }}
+Gateway={{ ipv4_gateway }}
+DNS={{ ipv4_dns | join(' ') }}
+DNSSEC=yes

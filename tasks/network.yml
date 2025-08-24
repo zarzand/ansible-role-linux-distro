@@ -4,138 +4,299 @@
   ansible.builtin.set_fact:
     network_manager_active: "{{ (ansible_facts.services['NetworkManager.service'].status | default('not-found')) != 'not-found' }}"
 
-# -------------------------------------------- #
 - name: network | Set fact if systemd-networkd is active
   ansible.builtin.set_fact:
-    networkd_active: "{{ (ansible_facts.services['systemd-networkd.service'].status | default('not-found')) != 'not-found' }}"
+    systemd_networkd_active: "{{ (ansible_facts.services['systemd-networkd.service'].status | default('not-found')) != 'not-found' }}"
 
-# -------------------------------------------- #
+- name: network | Get ethernet interface and return json results
+  ansible.builtin.shell:
+    cmd: |
+      lshw -class network 2>/dev/null | awk '
+        BEGIN {
+          active_count = 0
+          inactive_count = 0
+        }
+        /\*-network/ { flag = 0 }
+        /description: Ethernet interface/ { flag = 1 }
+        /logical name:/ && flag { iface = $3 }
+        /serial:/ && flag { mac = $2 }
+        /configuration:/ && flag {
+          if ($0 ~ /link=/) {
+            match($0, /link=([a-z]+)/, m)
+            cmd = "ip link show " iface " | grep -q \"state UP\" && echo up || echo down"
+            cmd | getline state
+            close(cmd)
+            current = sprintf("\"current_name\":\"%s\",\"type\":\"ethernet\",\"link\":\"%s\",\"state\":\"%s\",\"mac_address\":\"%s\"",iface, m[1], state, mac)
+            if (m[1] == "yes" && state == "up") {
+              active[active_count++] = current
+            } else {
+              inactive[inactive_count++] = current
+            }
+            flag = 0
+          }
+        }
+        END {
+          eth_index = 0
+          for (i = 0; i < active_count; i++) {
+            printf "{ \"new_name\":\"eth%d\",%s }\n", eth_index++, active[i]
+          }
+          for (i = 0; i < inactive_count; i++) {
+            printf "{ \"new_name\":\"eth%d\",%s }\n", eth_index++, inactive[i]
+          }
+        }'
+  register: ethernet_interfaces
+
+- name: network | Convert shell json lines into a list
+  ansible.builtin.set_fact:
+    ethernet_interface_list: "{{ ethernet_interfaces.stdout_lines | map('from_json') | list }}"
+
+- name: network | Find NetworkManager connection files
+  ansible.builtin.find:
+    paths: "{{ network_manager_files_path }}"
+    patterns: "*.nmconnection"
+    file_type: file
+  register: network_manager_files
+
 - name: network | Find netplan configuration files
   ansible.builtin.find:
-    paths: /etc/netplan
+    paths: "{{ netplan_files_path }}"
     patterns: "*.yaml"
+    file_type: file
   register: netplan_files
 
-- name: network | Set netplan renderer unknown if no configuration files
-  ansible.builtin.set_fact:
-    netplan_renderer: "unknown"
-  when: netplan_files.files | length == 0
-
-- name: network | Read netplan configuration if files exist
+- name: network | Set netplan configuration to variable
   ansible.builtin.slurp:
     src: "{{ item.path }}"
   loop: "{{ netplan_files.files }}"
   register: netplan_content
-  when: netplan_files.files | length > 0
+  no_log: true
 
 - name: network | Load netplan YAML content
   ansible.builtin.set_fact:
-    netplan_content_decoded: "{{ item.content | b64decode | from_yaml }}"
+    netplan_content_decoded: "{{ netplan_content_decoded | default([]) + [item.content | b64decode | from_yaml] }}" # netplan_content_decoded: "{{ item.content | b64decode | from_yaml }}"
   loop: "{{ netplan_content.results }}"
-  when: netplan_files.files | length > 0 and item.content is defined
+  when: item.content is defined
   no_log: true
 
-- name: network | Determine netplan renderer from content
+- name: network | Set netplan renderer to unknown when no netplan files found
+  ansible.builtin.set_fact:
+    netplan_renderer: "{{ netplan_content_decoded.network.renderer | default('unknown') }}"
+  when: netplan_files.files | length == 0
+
+- name: network | Determine netplan renderer from content when netplan files exist
   ansible.builtin.set_fact:
     netplan_renderer: "{{ netplan_content_decoded.network.renderer | default('none') }}"
   when: netplan_files.files | length > 0
 
+- name: network | Find systemd-networkd network files
+  ansible.builtin.find:
+    paths: "{{ systemd_networkd_files_path }}"
+    patterns: "*.network"
+    file_type: file
+  register: systemd_networkd_files
+
+- name: network | Set fact if systemd-networkd config exists
+  ansible.builtin.set_fact:
+    systemd_networkd_exists: "{{ systemd_networkd_files.files | length > 0 }}"
+
 - name: network | Determine primary network manager
   ansible.builtin.set_fact:
     primary_network_manager: >-
-      {% if network_manager_active and netplan_renderer == 'NetworkManager' %}
+      {% if network_manager_active and netplan_renderer in ['NetworkManager', 'none']  %}
         NetworkManagerViaNetplan
-      {% elif network_manager_active %}
+      {% elif network_manager_active and netplan_renderer == 'unknown' %}
         NetworkManager
-      {% elif netplan_renderer in ['networkd', 'none'] %}
+      {% elif systemd_networkd_active and netplan_renderer in ['networkd', 'none'] %}
         SystemdNetworkdViaNetplan
-      {% elif networkd_active and netplan_renderer == 'unknown' %}
+      {% elif systemd_networkd_active and systemd_networkd_exists and netplan_renderer == 'unknown' %}
         SystemdNetworkd
       {% else %}
         UnknownOrOtherMethod
       {% endif %}
 
-- name: network | networkd_active
-  ansible.builtin.debug:
-    var: primary_network_manager
+- name: network | Set simplified netplan network renderer variable
+  ansible.builtin.set_fact:
+    netplan_network_renderer: >-
+      {% if primary_network_manager | trim | replace('\n','') == 'SystemdNetworkdViaNetplan' %}
+        networkd
+      {% elif primary_network_manager | trim | replace('\n','') == 'NetworkManagerViaNetplan' %}
+        NetworkManager
+      {% else %}
+        unknown
+      {% endif %}
 
-# -------------------------------------------- #
-- name: network | Get ethernet interface name
+#- name: network | Modify NetworkManager connection and interface
+#  ansible.builtin.shell:
+#    cmd: |
+#      # File name: cloud-init-end0.nmconnection
+#      connection_file_name="$(find /etc/NetworkManager/system-connections/ -type f -name '*{{ item.current_name }}*' -printf '%f\n')"
+#
+#      # cloud-init
+#      connection_name="$(echo "$connection_file_name" | sed 's/-{{ item.current_name }}.*$//')"
+#
+#      # cloud-init
+#      nm_connection_name="$(sudo nmcli -t -f name,type connection show --active | awk -F: '$2 ~ /ethernet/ {print $1}' | awk -v dev="{{ item.current_name }}" '{if (NF==2 && $2==dev) print $1; else {sub("-"dev,""); print}}')"
+#
+#      # Set network config name
+#      new_nm_connection_name="{{ network_config_name }}-{{ item.new_name }}"
+#      new_nm_network_config="{{ network_config_name }}-{{ item.new_name }}.nmconnection"
+#
+#      if [[ $nm_connection_name != *"{{ network_config_name }}"* ]]; then
+#        nm_full_connection_name=$(sudo nmcli -f name connection show --active | grep "^$nm_connection_name" | sed 's/[[:space:]]*$//')
+#
+#        sudo mv /etc/NetworkManager/system-connections/"$connection_file_name"* /etc/NetworkManager/system-connections/"$new_nm_network_config"
+#        sed -i 's/$nm_full_connection_name/$new_nm_connection_name/' /etc/NetworkManager/system-connections/"$new_nm_network_config"
+#        sudo nmcli connection reload
+#
+#        sudo nmcli connection modify "$nm_full_connection_name" connection.id "$new_nm_connection_name"
+#        sudo nmcli connection reload
+#
+#        # Change network interface name
+#        sudo ip link set "{{ item.current_name }}" name "{{ item.new_name }}"
+#        sudo ip link set "{{ item.new_name }}" up
+#        sudo nmcli connection reload
+#      fi
+#  with_items: "{{ ethernet_interface_list }}"
+#  when: primary_network_manager | trim | replace("\n", "") == 'NetworkManager'
+
+- name: network | Modify or create NetworkManager connection and interface
   ansible.builtin.shell:
     cmd: |
-       lshw -class network 2>/dev/null | awk '/description: Ethernet interface/ {flag=1} /logical name:/ && flag {iface=$3} /serial:/ && flag {mac=$2} /configuration:/ && flag {if ($0 ~ /link=/) {match($0, /link=([a-z]+)/, m); cmd="ip link show " iface " | grep -q \"state UP\" && echo up || echo down"; cmd | getline state; close(cmd); printf "{\"name\": \"%s\", \"macaddress\": \"%s\", \"link\": \"%s\", \"state\": \"%s\"}\n", iface, mac, m[1], state} flag=0}'
-  register: ethernet_interface_name
+      # Try to find an existing connection file
+      connection_file_name="$(find {{ network_manager_files_path }} -type f -name '*{{ item.current_name }}*' -printf '%f\n')"
+  
+      # Base names
+      new_nm_connection_name="{{ network_config_name }}-{{ item.new_name }}"
+      new_nm_network_config="{{ network_config_name }}-{{ item.new_name }}.nmconnection"
+  
+      if [ -z "$connection_file_name" ]; then
+        # No existing file → create a new empty one
+        echo "[connection]" | sudo tee {{ network_manager_files_path }}/"$new_nm_network_config" > /dev/null
+        sudo chmod 600 {{ network_manager_files_path }}/"$new_nm_network_config"
+        sudo chown root:root {{ network_manager_files_path }}/"$new_nm_network_config"
+      else
+        # Existing file → rename it
+        sudo mv {{ network_manager_files_path }}/"$connection_file_name" {{ network_manager_files_path }}/"$new_nm_network_config"
+      fi
+  
+      # Modify connection name inside the file
+      sudo sed -i "s/^id=.*/id=$new_nm_connection_name/" {{ network_manager_files_path }}/"$new_nm_network_config"
+  
+      # Reload NM
+      sudo nmcli connection reload
+  
+      # Rename network interface
+      sudo ip link set "{{ item.current_name }}" name "{{ item.new_name }}"
+      sudo ip link set "{{ item.new_name }}" up
+      sudo nmcli connection reload
+  loop: "{{ ethernet_interface_list }}"
+  when: primary_network_manager | trim | replace('\n', '') == 'NetworkManager' and item.link == 'yes' and item.state == 'up'
 
-- name: Convert shell JSON lines into a list
+- name: network | Persistent network interface names
+  ansible.builtin.copy:
+    dest: "{{ udev_rules_files_path }}/{{ network_interface_file_name }}.rules"
+    content: "SUBSYSTEM==\"net\", ACTION==\"add\", DRIVERS==\"?*\", ATTR{address}==\"{{ item.mac_address }}\", NAME=\"{{ item.new_name }}\"\n"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ ethernet_interface_list }}"
+
+- name: network | Reload UDEV Rules
+  ansible.builtin.shell:
+    cmd: |    
+      udevadm control --reload-rules
+  become: true
+
+- name: network | Change NetworkManager configuration
+  community.general.nmcli:
+    conn_name: "{{ network_config_name }}-{{ item.new_name }}"
+    ifname: "{{ item.new_name }}"
+    type: "{{ item.type }}"
+    ip4: "{{ ipv4_addresses }}/{{ ipv4_addresses_subnet_mask }}"
+    method4: "manual"
+    gw4: "{{ ipv4_gateway }}"
+    method6: "disabled"
+    dns4: "{{ ipv4_dns }}"
+    state: present
+  with_items: "{{ ethernet_interface_list }}"
+  notify: Restart Network Manager
+  when: primary_network_manager | trim | replace('\n', '') == 'NetworkManager' and item.link == 'yes' and item.state == 'up'
+
+- name: network | Build list of allowed NetworkManager files
   ansible.builtin.set_fact:
-    ethernet_interface_name_list: "{{ ethernet_interface_name.stdout_lines | map('from_json') | list }}"
+    allowed_Network_manager_files: >-
+      {{
+        ethernet_interface_list
+        | selectattr('link','equalto','yes') 
+        | selectattr('state','equalto','up')       
+        | map(attribute='new_name')
+        | map('regex_replace', '^(.*)$', network_config_name ~ '-\1.nmconnection')
+        | list
+      }}
 
-- name: network | Display ethernet interface name
-  ansible.builtin.debug:
-    msg: "{{ item }}"
-  with_items: "{{ ethernet_interface_name_list }}"
+- name: network | Delete all NetworkManager files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ network_manager_files.files }}"
+  when: (item.path | basename) not in allowed_Network_manager_files
 
+- name: network | Prepare netplan network configuration
+  ansible.builtin.set_fact:
+    netplan_network:
+      version: 2
+      renderer: "{{ netplan_network_renderer | trim | replace('\n', '') }}" #networkd
+      ethernets: "{{ { netplan_interface:netplan_interface_data } }}"
+  vars:
+    netplan_interface: "{{ item.new_name }}"
+    netplan_interface_data:
+      dhcp4: no
+      dhcp6: no
+      accept-ra: no
+      addresses:
+        - "{{ ipv4_addresses }}/{{ ipv4_addresses_subnet_mask }}"
+      routes:
+        - to: 0.0.0.0/0 #default
+          via: "{{ ipv4_gateway }}"
+      nameservers:
+        addresses: "{{ ipv4_dns }}"
+  with_items: "{{ ethernet_interface_list }}"
+  when: primary_network_manager | trim | replace("\n", "") in ['NetworkManagerViaNetplan', 'SystemdNetworkdViaNetplan'] and item.link == 'yes' and item.state == 'up'
 
-# -------------------------------------------- #
-#
-#- name: network | Change NetworkManager configuration
-#  community.general.nmcli:
-#    conn_name: "{{ nmcli_connection_name_0 }}"
-#    ifname: "{{ nmcli_device_interface_name_0 }}"
-#    type: "{{ nmcli_connection_type }}"
-#    ip4: "{{ ipv4_addresses }}/{{ ipv4_addresses_subnet_mask }}"
-#    method4: "manual"
-#    gw4: "{{ ipv4_gateway }}"
-#    method6: "disabled"
-#    dns4:
-#      - "{{ a_dns1 }}"
-#      - "{{ a_dns2 }}"
-#    state: present
-#  notify:
-#    - Reboot server
-#  when: primary_network_manager == 'NetworkManager'
-#
-## -------------------------------------------- #
-#- name: prepare server network config
-#  vars:
-#    my_interface: "{{ ansible_default_ipv4.interface }}"
-#    my_interface_data:
-#      dhcp4: no
-#      dhcp6: no
-#      accept-ra: no
-#      addresses:
-#        - "{{ ipv4_addresses }}/{{ ipv4_addresses_subnet_mask }}"
-#      routes:
-#        - to: 0.0.0.0/0 #default
-#          via: "{{ ipv4_gateway }}"
-#      nameservers:
-#        addresses:
-#          - "{{ a_dns1 }}"
-#          - "{{ a_dns2 }}"
-##        search:
-##          "{{ a_domain }}" #"{{ ansible_dns.search | default('not_found_in_facts') }}"
-#
-#  ansible.builtin.set_fact:
-#    my_network:
-#      ethernets: "{{ { my_interface:my_interface_data } }}"
-#      version: 2
-#      renderer: networkd
-#
-#- name: Set network config
-#  ansible.builtin.set_fact:
-#    netplan_configuration:
-#      network: "{{ my_network }}"
-#
-#- name: Showing the new server network config
-#  ansible.builtin.debug:
-#    var: netplan_configuration
-#
-#- name: Change server network config
-#  ansible.builtin.template:
-#    src: netplan.j2
-#    dest: "/etc/netplan/99-network-config.yaml"
-#    mode: 0644
-#    backup: no
-#  become: true
-#  when: netplan_configuration != []
-#  notify: netplan generate config
+- name: network | Build netplan network configuration
+  ansible.builtin.set_fact:
+    netplan_configuration:
+      network: "{{ netplan_network }}"
+  when: primary_network_manager | trim | replace("\n", "") in ['NetworkManagerViaNetplan', 'SystemdNetworkdViaNetplan']
+
+- name: network | Generate and apply netplan network configuration
+  ansible.builtin.template:
+    src: netplan.j2
+    dest: "{{ netplan_files_path }}/{{ network_config_name }}.yaml"
+    mode: "0644"
+  become: true
+  notify: Generating Netplan Configuration
+  when: primary_network_manager | trim | replace("\n", "") in ['NetworkManagerViaNetplan', 'SystemdNetworkdViaNetplan'] and netplan_configuration != []
+
+- name: network | Delete all netplan files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ netplan_files.files }}"
+  when: item.path | basename != network_config_name + '.yaml'
+
+- name: network | Change systemd-networkd configuration file
+  ansible.builtin.template:
+    src: systemd-networkd.j2
+    dest: "{{ systemd_networkd_files_path }}/{{ network_config_name }}.network"
+    mode: "0644"
+  become: true
+  notify: Restart Systemd Networkd
+  when: primary_network_manager | trim | replace("\n", "") == 'SystemdNetworkd' and item.link == 'yes' and item.state == 'up'
+
+- name: network | Delete all systemd-networkd files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ systemd_networkd_files.files }}"
+  when: item.path | basename != network_config_name + '.network'

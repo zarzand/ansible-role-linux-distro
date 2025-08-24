@@ -1,5 +1,14 @@
 ---
 
+- name: hardware | Get machine model
+  ansible.builtin.command: cat /proc/device-tree/model
+  register: machine_model
+  changed_when: false
+
+- name: hardware | Server hardware information display machine model
+  ansible.builtin.debug:
+    msg: "Machine Model: {{ machine_model.stdout }}"
+
 - name: hardware | Server hardware information display total memory
   ansible.builtin.debug:
     msg: "Total Memory: {{ ansible_memtotal_mb }} MB"
@@ -19,3 +28,28 @@
 - name: hardware | Server hardware information display CPU model
   ansible.builtin.debug:
     msg: "CPU Model: {{ ansible_processor[1] if ansible_processor | length > 1 else ansible_processor[0] }}"
+
+- name: hardware | Disable wifi for Raspberry Pi
+  ansible.builtin.lineinfile:
+    path: /boot/config.txt
+    line: "dtoverlay=disable-wifi"
+    create: true
+  when:
+    - "machine_model_name in machine_model.stdout"
+    - raspberry_pi_disable_wifi | default(false) | bool
+
+- name: hardware | Disable NetworkManager wifi for Raspberry Pi
+  ansible.builtin.command: sudo nmcli radio wifi off
+  failed_when: false
+  when:
+    - "machine_model_name in machine_model.stdout"
+    - raspberry_pi_disable_wifi | default(false) | bool
+
+- name: hardware | Disable bluetooth for Raspberry Pi
+  ansible.builtin.lineinfile:
+    path: /boot/config.txt
+    line: "dtoverlay=disable-bt"
+    create: true
+  when:
+    - "machine_model_name in machine_model.stdout"
+    - raspberry_pi_disable_bluetooth | default(false) | bool

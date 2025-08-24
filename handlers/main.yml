@@ -1,29 +1,38 @@
 ---
-#### etc/hosts ####
-- name: Restart etc hosts
-  ansible.builtin.service:
-    name: hostsd
-    state: restarted
-
-#### sshd ####
-- name: Restart sshd
-  ansible.builtin.service:
-    name: sshd
-    state: restarted
 
 - name: Reboot Server
   ansible.builtin.reboot:
+    msg: "Reboot initiated by Ansible"
+    connect_timeout: 5
+    reboot_timeout: 300
+    pre_reboot_delay: 0
+    post_reboot_delay: 30
+    test_command: uptime
+  vars:
+    ansible_host: "{{ ipv4_addresses }}"
 
-#### Generating Netplan Configuration ####
 - name: Generating Netplan Configuration
   ansible.builtin.command: netplan generate
-  listen: netplan generate config
-  notify: netplan apply config
   become: true
+  notify: Applying Netplan Configuration
 
-#### Applying Netplan Configuration ####
 - name: Applying Netplan Configuration
   ansible.builtin.command: netplan apply
-  listen: netplan apply config
+  async: 1
+  poll: 0
   become: true
-  #when: netplan_apply
+  notify: Reboot Server
+
+- name: Restart Network Manager
+  ansible.builtin.service:
+    name: NetworkManager
+    state: restarted
+  become: true
+  notify: Reboot Server
+
+- name: Restart Systemd Networkd
+  ansible.builtin.systemd:
+    name: systemd-networkd
+    state: restarted
+  become: true
+  notify: Reboot Server
