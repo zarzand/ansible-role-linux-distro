@@ -23,7 +23,9 @@ machine_model_name: ""
 raspberry_pi_disable_bluetooth: ""
 raspberry_pi_disable_wifi: ""
 
-#### Host ####
+# =====================================================
+# 🔧 Configuration
+# =====================================================
 sudoers_file_name: "99-sudo-users"
 sudoers_delete_file_exclusion:
   - "{{ sudoers_file_name }}"
@@ -31,17 +33,23 @@ sudoers_delete_file_exclusion:
 network_interface_file_name: "99-network-interface"
 network_config_name: "99-network-config"
 
-#### Add User ####
+# =====================================================
+# 👤 Users / Accounts
+# =====================================================
 add_sudo_user: ""
 add_sudo_user_comment: ""
 
-##### IPv4 ####
+# =====================================================
+# 🌐 Networking
+# =====================================================
 ipv4_addresses: ""
 ipv4_addresses_subnet_mask: ""
 ipv4_gateway: ""
 ipv4_dns: []
 
-##### Firewall ####
+# =====================================================
+# 🛡️ Firewall / Protection
+# =====================================================
 firewall_set_default_zone: ""
 firewall_zone: "public"
 firewall_set_default_interface: ""
@@ -49,7 +57,9 @@ firewall_interfaces: []
 firewall_services: []
 firewall_ports: []
 
-##### Default ####
+# =====================================================
+# ⚙️ Settings / System setup
+# =====================================================
 default_sudo_user: "pinube"
 default_timezone: "America/Los_Angeles"
 default_domain: "pinube.net"
