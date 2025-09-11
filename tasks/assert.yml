@@ -7,7 +7,9 @@
   ansible.builtin.assert:
     that:
       - linux_distro_packages is iterable
-    quiet: true
+    quiet: false
+    fail_msg: "❌ linux_distro_packages must be a iterable (list)"
+    success_msg: "✅ linux_distro_packages is a iterable"
   when:
     - linux_distro_packages is defined
 
@@ -19,42 +21,55 @@
     that:
       - hosts_files_path is defined
       - hosts_files_path is string
-    quiet: true
+    quiet: false
+    fail_msg: "❌ hosts_files_path must be a string"
+    success_msg: "✅ hosts_files_path is a string"
 
 - name: assert | Test sudoers_files_path
   ansible.builtin.assert:
     that:
       - sudoers_files_path is defined
       - sudoers_files_path is string
-    quiet: true
+    quiet: false
+    fail_msg: "❌ sudoers_files_path must be a string"
+    success_msg: "✅ sudoers_files_path is a string"
 
 - name: assert | Test udev_rules_files_path
   ansible.builtin.assert:
     that:
       - udev_rules_files_path is defined
       - udev_rules_files_path is string
-    quiet: true
+    quiet: false
+    fail_msg: "❌ udev_rules_files_path must be a string"
+    success_msg: "✅ udev_rules_files_path is a string"
 
 - name: assert | Test network_manager_files_path
   ansible.builtin.assert:
     that:
       - network_manager_files_path is defined
       - network_manager_files_path is string
-    quiet: true
+    quiet: false
+    fail_msg: "❌ network_manager_files_path must be a string"
+    success_msg: "✅ network_manager_files_path is a string"
 
 - name: assert | Test netplan_files_path
   ansible.builtin.assert:
     that:
       - netplan_files_path is defined
       - netplan_files_path is string
-    quiet: true
+    quiet: false
+    fail_msg: "❌ netplan_files_path must be a string"
+    success_msg: "✅ netplan_files_path is a string"
+
 
 - name: assert | Test systemd_networkd_files_path
   ansible.builtin.assert:
     that:
       - systemd_networkd_files_path is defined
       - systemd_networkd_files_path is string
-    quiet: true
+    quiet: false
+    fail_msg: "❌ systemd_networkd_files_path must be a string"
+    success_msg: "✅ systemd_networkd_files_path is a string"
 
 # =====================================================
 # 🖥️ Hardware / System info
@@ -62,22 +77,30 @@
 - name: assert | Test machine_model_name
   ansible.builtin.assert:
     that:
-      - machine_model_name is defined
       - machine_model_name is string
-    quiet: true
+    quiet: false
+    fail_msg: "❌ machine_model_name must be a string"
+    success_msg: "✅ machine_model_name is a string"
+  when:
+    - machine_model_name is defined
 
 - name: assert | Test raspberry_pi_disable_bluetooth
   ansible.builtin.assert:
     that:
-      - raspberry_pi_disable_bluetooth is defined
       - raspberry_pi_disable_bluetooth is boolean
-    quiet: true
+    quiet: false
+    fail_msg: "❌ raspberry_pi_disable_bluetooth must be a boolean (true/false)"
+    success_msg: "✅ raspberry_pi_disable_bluetooth is a boolean"
+  when:
+    - raspberry_pi_disable_bluetooth is defined
 
 - name: assert | Test raspberry_pi_disable_wifi
   ansible.builtin.assert:
     that:
       - raspberry_pi_disable_wifi is boolean
-    quiet: true
+    quiet: false
+    fail_msg: "❌ raspberry_pi_disable_wifi must be a boolean (true/false)"
+    success_msg: "✅ raspberry_pi_disable_wifi is a boolean"
   when:
     - raspberry_pi_disable_wifi is defined
 
@@ -89,22 +112,36 @@
     that:
       - sudoers_file_name is defined
       - sudoers_file_name is string
-    quiet: true
+    quiet: false
+    fail_msg: "❌ sudoers_file_name must be a string"
+    success_msg: "✅ sudoers_file_name is a string"
 
 - name: assert | Test sudoers_delete_file_exclusion
   ansible.builtin.assert:
     that:
+      - sudoers_delete_file_exclusion is defined
       - sudoers_delete_file_exclusion is iterable
-    quiet: true
-  when:
-    - sudoers_delete_file_exclusion is defined
+    quiet: false
+    fail_msg: "❌ sudoers_delete_file_exclusion must be a iterable (list)"
+    success_msg: "✅ sudoers_delete_file_exclusion is a iterable"
 
 - name: assert | Test network_interface_file_name
   ansible.builtin.assert:
     that:
       - network_interface_file_name is defined
       - network_interface_file_name is string
-    quiet: true
+    quiet: false
+    fail_msg: "❌ network_interface_file_name must be a string"
+    success_msg: "✅ network_interface_file_name is a string"
+
+- name: assert | Test network_config_name
+  ansible.builtin.assert:
+    that:
+      - network_config_name is defined
+      - network_config_name is string
+    quiet: false
+    fail_msg: "❌ network_config_name must be a string"
+    success_msg: "✅ network_config_name is a string"
 
 # =====================================================
 # 👤 Users / Accounts
@@ -114,14 +151,19 @@
     that:
       - add_sudo_user is defined
       - add_sudo_user is string
-    quiet: true
+    quiet: false
+    fail_msg: "❌ add_sudo_user must be a string"
+    success_msg: "✅ add_sudo_user is a string"
 
-- name: assert | Test add_sudo_user
+- name: assert | Test add_sudo_user_comment
   ansible.builtin.assert:
     that:
-      - add_sudo_user is defined
-      - add_sudo_user is string
-    quiet: true
+      - add_sudo_user_comment is string
+    quiet: false
+    fail_msg: "❌ add_sudo_user_comment must be a string"
+    success_msg: "✅ add_sudo_user_comment is a string"
+  when:
+    - add_sudo_user_comment is defined
 
 # =====================================================
 # 🌐 Networking
@@ -131,27 +173,35 @@
     that:
       - ipv4_addresses is defined
       - ipv4_addresses is string
-    quiet: true
+    quiet: false
+    fail_msg: "❌ ipv4_addresses must be a string"
+    success_msg: "✅ ipv4_addresses is a string"
 
 - name: assert | Test ipv4_addresses_subnet_mask
   ansible.builtin.assert:
     that:
       - ipv4_addresses_subnet_mask is defined
       - ipv4_addresses_subnet_mask is integer
-    quiet: true
+    quiet: false
+    fail_msg: "❌ ipv4_addresses_subnet_mask must be a integer"
+    success_msg: "✅ ipv4_addresses_subnet_mask is a integer"
 
 - name: assert | Test ipv4_gateway
   ansible.builtin.assert:
     that:
       - ipv4_gateway is defined
       - ipv4_gateway is string
-    quiet: true
+    quiet: false
+    fail_msg: "❌ ipv4_gateway must be a string"
+    success_msg: "✅ ipv4_gateway is a string"
 
 - name: assert | Test ipv4_dns
   ansible.builtin.assert:
     that:
       - ipv4_dns is iterable
-    quiet: true
+    quiet: false
+    fail_msg: "❌ ipv4_dns must be a iterable (list)"
+    success_msg: "✅ ipv4_dns is a iterable"
   when:
     - ipv4_dns is defined
 
@@ -162,7 +212,9 @@
   ansible.builtin.assert:
     that:
       - firewall_set_default_zone is boolean
-    quiet: true
+    quiet: false
+    fail_msg: "❌ firewall_set_default_zone must be a boolean (true/false)"
+    success_msg: "✅ firewall_set_default_zone is a boolean"
   when:
     - firewall_set_default_zone is defined
 
@@ -171,13 +223,17 @@
     that:
       - firewall_zone is defined
       - firewall_zone is string
-    quiet: true
+    quiet: false
+    fail_msg: "❌ firewall_zone must be a string"
+    success_msg: "✅ firewall_zone is a string"
 
 - name: assert | Test firewall_set_default_interface
   ansible.builtin.assert:
     that:
       - firewall_set_default_interface is boolean
-    quiet: true
+    quiet: false
+    fail_msg: "❌ firewall_set_default_interface must be a boolean (true/false)"
+    success_msg: "✅ firewall_set_default_interface is a boolean"
   when:
     - firewall_set_default_interface is defined
 
@@ -185,7 +241,9 @@
   ansible.builtin.assert:
     that:
       - firewall_interfaces is iterable
-    quiet: true
+    quiet: false
+    fail_msg: "❌ firewall_interfaces must be a iterable (list)"
+    success_msg: "✅ firewall_interfaces is a iterable"
   when:
     - firewall_interfaces is defined
 
@@ -193,7 +251,9 @@
   ansible.builtin.assert:
     that:
       - firewall_services is iterable
-    quiet: true
+    quiet: false
+    fail_msg: "❌ firewall_services must be a iterable (list)"
+    success_msg: "✅ firewall_services is a iterable"
   when:
     - firewall_services is defined
 
@@ -201,7 +261,9 @@
   ansible.builtin.assert:
     that:
       - firewall_ports is iterable
-    quiet: true
+    quiet: false
+    fail_msg: "❌ firewall_ports must be a iterable (list)"
+    success_msg: "✅ firewall_ports is a iterable"
   when:
     - firewall_ports is defined
 
@@ -213,33 +275,42 @@
     that:
       - default_sudo_user is defined
       - default_sudo_user is string
-    quiet: true
+    quiet: false
+    fail_msg: "❌ default_sudo_user must be a string"
+    success_msg: "✅ default_sudo_user is a string"
 
 - name: assert | Test default_timezone
   ansible.builtin.assert:
     that:
       - default_timezone is defined
       - default_timezone is string
-    quiet: true
+    quiet: false
+    fail_msg: "❌ default_timezone must be a string"
+    success_msg: "✅ default_timezone is a string"
 
 - name: assert | Test default_domain
   ansible.builtin.assert:
     that:
       - default_domain is defined
       - default_domain is string
-    quiet: true
+    quiet: false
+    fail_msg: "❌ default_domain must be a string"
+    success_msg: "✅ default_domain is a string"
 
 - name: assert | Test default_hostname
   ansible.builtin.assert:
     that:
       - default_hostname is defined
       - default_hostname is string
-    quiet: true
+    quiet: false
+    fail_msg: "❌ default_hostname must be a string"
+    success_msg: "✅ default_hostname is a string"
 
 - name: assert | Test default_hosts
   ansible.builtin.assert:
     that:
+      - default_hosts is defined
       - default_hosts is iterable
-    quiet: true
-  when:
-    - default_hosts is defined
+    quiet: false
+    fail_msg: "❌ default_hosts must be a iterable (list)"
+    success_msg: "✅ default_hosts is a iterable"
