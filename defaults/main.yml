@@ -6,9 +6,8 @@
 linux_distro_packages: []
 
 # =====================================================
-# 📂 Files
+# 📂 Files Directory Path
 # =====================================================
-#### Directory Path ####
 hosts_files_path: "/etc/hosts"
 sudoers_files_path: "/etc/sudoers.d"
 udev_rules_files_path: "/etc/udev/rules.d"

@@ -1,2 +1,245 @@
 ---
 
+# =====================================================
+# 📦 Packages
+# =====================================================
+- name: assert | Test linux_distro_packages
+  ansible.builtin.assert:
+    that:
+      - linux_distro_packages is iterable
+    quiet: true
+  when:
+    - linux_distro_packages is defined
+
+# =====================================================
+# 📂 Files Directory Path
+# =====================================================
+- name: assert | Test hosts_files_path
+  ansible.builtin.assert:
+    that:
+      - hosts_files_path is defined
+      - hosts_files_path is string
+    quiet: true
+
+- name: assert | Test sudoers_files_path
+  ansible.builtin.assert:
+    that:
+      - sudoers_files_path is defined
+      - sudoers_files_path is string
+    quiet: true
+
+- name: assert | Test udev_rules_files_path
+  ansible.builtin.assert:
+    that:
+      - udev_rules_files_path is defined
+      - udev_rules_files_path is string
+    quiet: true
+
+- name: assert | Test network_manager_files_path
+  ansible.builtin.assert:
+    that:
+      - network_manager_files_path is defined
+      - network_manager_files_path is string
+    quiet: true
+
+- name: assert | Test netplan_files_path
+  ansible.builtin.assert:
+    that:
+      - netplan_files_path is defined
+      - netplan_files_path is string
+    quiet: true
+
+- name: assert | Test systemd_networkd_files_path
+  ansible.builtin.assert:
+    that:
+      - systemd_networkd_files_path is defined
+      - systemd_networkd_files_path is string
+    quiet: true
+
+# =====================================================
+# 🖥️ Hardware / System info
+# =====================================================
+- name: assert | Test machine_model_name
+  ansible.builtin.assert:
+    that:
+      - machine_model_name is defined
+      - machine_model_name is string
+    quiet: true
+
+- name: assert | Test raspberry_pi_disable_bluetooth
+  ansible.builtin.assert:
+    that:
+      - raspberry_pi_disable_bluetooth is defined
+      - raspberry_pi_disable_bluetooth | bool
+    quiet: true
+
+- name: assert | Test raspberry_pi_disable_wifi
+  ansible.builtin.assert:
+    that:
+      - raspberry_pi_disable_wifi | bool
+    quiet: true
+  when:
+    - raspberry_pi_disable_wifi is defined
+
+# =====================================================
+# 🔧 Configuration
+# =====================================================
+- name: assert | Test sudoers_file_name
+  ansible.builtin.assert:
+    that:
+      - sudoers_file_name is defined
+      - sudoers_file_name is string
+    quiet: true
+
+- name: assert | Test sudoers_delete_file_exclusion
+  ansible.builtin.assert:
+    that:
+      - sudoers_delete_file_exclusion is iterable
+    quiet: true
+  when:
+    - sudoers_delete_file_exclusion is defined
+
+- name: assert | Test network_interface_file_name
+  ansible.builtin.assert:
+    that:
+      - network_interface_file_name is defined
+      - network_interface_file_name is string
+    quiet: true
+
+# =====================================================
+# 👤 Users / Accounts
+# =====================================================
+- name: assert | Test add_sudo_user
+  ansible.builtin.assert:
+    that:
+      - add_sudo_user is defined
+      - add_sudo_user is string
+    quiet: true
+
+- name: assert | Test add_sudo_user
+  ansible.builtin.assert:
+    that:
+      - add_sudo_user is defined
+      - add_sudo_user is string
+    quiet: true
+
+# =====================================================
+# 🌐 Networking
+# =====================================================
+- name: assert | Test ipv4_addresses
+  ansible.builtin.assert:
+    that:
+      - ipv4_addresses is defined
+      - ipv4_addresses is string
+    quiet: true
+
+- name: assert | Test ipv4_addresses_subnet_mask
+  ansible.builtin.assert:
+    that:
+      - ipv4_addresses_subnet_mask is defined
+      - ipv4_addresses_subnet_mask is string
+    quiet: true
+
+- name: assert | Test ipv4_gateway
+  ansible.builtin.assert:
+    that:
+      - ipv4_gateway is defined
+      - ipv4_gateway is string
+    quiet: true
+
+- name: assert | Test ipv4_dns
+  ansible.builtin.assert:
+    that:
+      - ipv4_dns is iterable
+    quiet: true
+  when:
+    - ipv4_dns is defined
+
+# =====================================================
+# 🛡️ Firewall / Protection
+# =====================================================
+- name: assert | Test firewall_set_default_zone
+  ansible.builtin.assert:
+    that:
+      - firewall_set_default_zone | bool
+    quiet: true
+  when:
+    - firewall_set_default_zone is defined
+
+- name: assert | Test firewall_zone
+  ansible.builtin.assert:
+    that:
+      - firewall_zone is defined
+      - firewall_zone is string
+    quiet: true
+
+- name: assert | Test firewall_set_default_interface
+  ansible.builtin.assert:
+    that:
+      - firewall_set_default_interface | bool
+    quiet: true
+  when:
+    - firewall_set_default_interface is defined
+
+- name: assert | Test firewall_interfaces
+  ansible.builtin.assert:
+    that:
+      - firewall_interfaces is iterable
+    quiet: true
+  when:
+    - firewall_interfaces is defined
+
+- name: assert | Test firewall_services
+  ansible.builtin.assert:
+    that:
+      - firewall_services is iterable
+    quiet: true
+  when:
+    - firewall_services is defined
+
+- name: assert | Test firewall_ports
+  ansible.builtin.assert:
+    that:
+      - firewall_ports is iterable
+    quiet: true
+  when:
+    - firewall_ports is defined
+
+# =====================================================
+# ⚙️ Settings / System setup
+# =====================================================
+- name: assert | Test default_sudo_user
+  ansible.builtin.assert:
+    that:
+      - default_sudo_user is defined
+      - default_sudo_user is string
+    quiet: true
+
+- name: assert | Test default_timezone
+  ansible.builtin.assert:
+    that:
+      - default_timezone is defined
+      - default_timezone is string
+    quiet: true
+
+- name: assert | Test default_domain
+  ansible.builtin.assert:
+    that:
+      - default_domain is defined
+      - default_domain is string
+    quiet: true
+
+- name: assert | Test default_hostname
+  ansible.builtin.assert:
+    that:
+      - default_hostname is defined
+      - default_hostname is string
+    quiet: true
+
+- name: assert | Test default_hosts
+  ansible.builtin.assert:
+    that:
+      - default_hosts is iterable
+    quiet: true
+  when:
+    - default_hosts is defined
