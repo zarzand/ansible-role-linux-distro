@@ -70,13 +70,13 @@
   ansible.builtin.assert:
     that:
       - raspberry_pi_disable_bluetooth is defined
-      - raspberry_pi_disable_bluetooth | bool
+      - raspberry_pi_disable_bluetooth is boolean
     quiet: true
 
 - name: assert | Test raspberry_pi_disable_wifi
   ansible.builtin.assert:
     that:
-      - raspberry_pi_disable_wifi | bool
+      - raspberry_pi_disable_wifi is boolean
     quiet: true
   when:
     - raspberry_pi_disable_wifi is defined
@@ -161,7 +161,7 @@
 - name: assert | Test firewall_set_default_zone
   ansible.builtin.assert:
     that:
-      - firewall_set_default_zone | bool
+      - firewall_set_default_zone is boolean
     quiet: true
   when:
     - firewall_set_default_zone is defined
@@ -176,7 +176,7 @@
 - name: assert | Test firewall_set_default_interface
   ansible.builtin.assert:
     that:
-      - firewall_set_default_interface | bool
+      - firewall_set_default_interface is boolean
     quiet: true
   when:
     - firewall_set_default_interface is defined
