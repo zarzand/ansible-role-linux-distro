@@ -137,7 +137,7 @@
   ansible.builtin.assert:
     that:
       - ipv4_addresses_subnet_mask is defined
-      - ipv4_addresses_subnet_mask is string
+      - ipv4_addresses_subnet_mask is integer
     quiet: true
 
 - name: assert | Test ipv4_gateway
